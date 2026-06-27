@@ -1,0 +1,27 @@
+import{jsx as _jsx}from"react/jsx-runtime";import{addPropertyControls,ControlType,RenderTarget,useLocaleCode}from"framer";import{startTransition,useCallback,useEffect,useRef,useState}from"react";const fontStack=`"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`;function formatTimeOrDate(outputType,{showYear,showMonth,showWeekday,showMinutes,showSeconds},timeFormat,monthFormat,localCode){const date=new Date;const onlyYearIsShown=!showWeekday&&!showMonth&&showYear;switch(outputType){case"date":return new Intl.DateTimeFormat(localCode,{weekday:showWeekday?"long":undefined,day:onlyYearIsShown?undefined:"numeric",month:showMonth?monthFormat:undefined,year:showYear?"numeric":undefined}).format(date);case"time":return new Intl.DateTimeFormat(localCode,{hour:"numeric",minute:showMinutes?"numeric":undefined,second:showSeconds&&showMinutes?"numeric":undefined,hour12:timeFormat==="12h"}).format(date);default:return new Intl.DateTimeFormat(localCode).format(date);}}const defaultProps={height:20,width:140,outputType:"time",color:"#999",timeFormat:"24h",showYear:true,showMonth:true,showWeekday:true,showMinutes:true,showSeconds:true,monthFormat:"long",alignment:"center"};/**
+ * TIME AND DATE
+ * FORKED FROM PROTOTYPING
+ *
+ * @framerIntrinsicWidth 140
+ * @framerIntrinsicHeight 20
+ *
+ * @framerDisableUnlink
+ *
+ * @framerSupportedLayoutWidth any
+ * @framerSupportedLayoutHeight any
+ */export function Time(props){const mergedProps={...defaultProps,...props};const{outputType,timeFormat,showYear,showMonth,showWeekday,// showHours,
+showMinutes,showSeconds,monthFormat,color,font,tabularFont}=mergedProps;const localCode=useLocaleCode();const getTextContent=useCallback(()=>formatTimeOrDate(outputType,{showYear,showMonth,showWeekday,// showHours,
+    showMinutes,showSeconds},timeFormat,monthFormat,localCode),[localCode,monthFormat,outputType,showMinutes,showMonth,showSeconds,showWeekday,showYear,timeFormat]);const timeoutRef=useRef()// FIXME: With React 19, we can remove this and return a cleanup from the ref callback
+;const updateCountdown=useCallback(node=>{if(node===null){// React calls w/ `null` on unmount or if the ref function changes.
+clearTimeout(timeoutRef.current);return;}let prev;const tick=()=>{const date=new Date;const next=new Date().setSeconds(date.getSeconds()+1,0)-+date;timeoutRef.current=setTimeout(tick,next);const textContent=getTextContent();if(prev!==textContent){node.textContent=textContent;prev=textContent;}};tick();},[getTextContent]);const[visible,setIsVisible]=useState(false);const isCanvas=RenderTarget.current()===RenderTarget.canvas;useEffect(()=>{startTransition(()=>setIsVisible(true));// Don’t want real time on Canvas
+if(isCanvas)return;},[isCanvas]);return /*#__PURE__*/_jsx("p",{suppressHydrationWarning:true,style:{margin:0,padding:0,color,fontFamily:fontStack,fontWeight:500,fontSize:16,lineHeight:1,visibility:visible?"visible":"hidden",...font,fontVariantNumeric:tabularFont?"tabular-nums":"normal",whiteSpace:"nowrap"},ref:isCanvas?undefined:updateCountdown,children:getTextContent()});}Time.displayName="Time & Date";addPropertyControls(Time,{outputType:{title:"Type",type:ControlType.Enum,displaySegmentedControl:true,options:["date","time"],optionTitles:["Date","Time"],defaultValue:defaultProps.outputType},showWeekday:{title:"Day",type:ControlType.Boolean,enabledTitle:"Show",disabledTitle:"Hide",defaultValue:defaultProps.showWeekday,hidden:props=>props.outputType!=="date"},showMonth:{title:"Month",type:ControlType.Boolean,enabledTitle:"Show",disabledTitle:"Hide",defaultValue:defaultProps.showMonth,hidden:props=>props.outputType!=="date"},monthFormat:{title:"Format",type:ControlType.Enum,options:["short","long","numeric"],optionTitles:["Short","Long","Numeric"],defaultValue:defaultProps.monthFormat,hidden:props=>props.outputType!=="date"||!props.showMonth},showYear:{title:"Year",type:ControlType.Boolean,enabledTitle:"Show",disabledTitle:"Hide",defaultValue:defaultProps.showYear,hidden:props=>props.outputType!=="date"},timeFormat:{title:"Format",type:ControlType.Enum,options:["12h","24h"],optionTitles:["12h","24h"],displaySegmentedControl:true,defaultValue:defaultProps.timeFormat,hidden:props=>props.outputType!=="time"},// showHours: {
+//     title: "Hours",
+//     type: ControlType.Boolean,
+//     enabledTitle: "Show",
+//     disabledTitle: "Hide",
+//     defaultValue: defaultProps.showHours,
+//     hidden: (props) => props.outputType !== "time",
+// },
+showMinutes:{title:"Minutes",type:ControlType.Boolean,enabledTitle:"Show",disabledTitle:"Hide",defaultValue:defaultProps.showMinutes,hidden:props=>props.outputType!=="time"},showSeconds:{title:"Seconds",type:ControlType.Boolean,enabledTitle:"Show",disabledTitle:"Hide",defaultValue:defaultProps.showSeconds,hidden:props=>props.outputType!=="time"||!props.showMinutes},font:{type:ControlType.Font,controls:"extended"},tabularFont:{title:"Tabular",type:ControlType.Boolean,defaultValue:true},color:{type:ControlType.Color,defaultValue:defaultProps.color}});
+export const __FramerMetadata__ = {"exports":{"Time":{"type":"reactComponent","name":"Time","slots":[],"annotations":{"framerIntrinsicHeight":"20","framerSupportedLayoutHeight":"any","framerDisableUnlink":"*","framerSupportedLayoutWidth":"any","framerIntrinsicWidth":"140","framerContractVersion":"1"}},"__FramerMetadata__":{"type":"variable"}}}
+//# sourceMappingURL=./Time.map

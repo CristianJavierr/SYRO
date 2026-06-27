@@ -1,0 +1,16 @@
+{
+  "name": "armory-framer-clone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exact downloaded clone of https://armory.framer.ai/ with recovered, de-bundled, editable React source.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --root offline --port 5173",
+    "preview": "vite preview --root offline --port 4173",
+    "serve": "node serve-offline.mjs",
+    "view-source": "vite --root src --port 5174"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

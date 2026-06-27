@@ -1,0 +1,824 @@
+[
+  {
+    "id": "A1iUPLFsp",
+    "dir": "pages",
+    "file": "pages/A1iUPLFsp.jsx",
+    "name": "A1iUPLFsp"
+  },
+  {
+    "id": "Jz_jRNvxE",
+    "dir": "components",
+    "file": "components/Jz_jRNvxE.jsx",
+    "name": "Jz_jRNvxE"
+  },
+  {
+    "id": "eYV2B7jnk",
+    "dir": "components",
+    "file": "components/Vector1.jsx",
+    "name": "Vector1"
+  },
+  {
+    "id": "kInN5mesn",
+    "dir": "components",
+    "file": "components/Vector2.jsx",
+    "name": "Vector2"
+  },
+  {
+    "id": "ZESyTEvnR",
+    "dir": "pages",
+    "file": "pages/ZESyTEvnR.jsx",
+    "name": "ZESyTEvnR"
+  },
+  {
+    "id": "isMotionValue",
+    "dir": "components",
+    "file": "components/isMotionValue.jsx",
+    "name": "isMotionValue"
+  },
+  {
+    "id": "gHFQQ5wP9",
+    "dir": "components",
+    "file": "components/PrimaryButton.jsx",
+    "name": "PrimaryButton"
+  },
+  {
+    "id": "nvyfWplG1",
+    "dir": "components",
+    "file": "components/Vector1__nvyfWp.jsx",
+    "name": "Vector1__nvyfWp"
+  },
+  {
+    "id": "v7_DWFhEQ",
+    "dir": "components",
+    "file": "components/Vector1__v7_DWF.jsx",
+    "name": "Vector1__v7_DWF"
+  },
+  {
+    "id": "RZSRtUQhH",
+    "dir": "components",
+    "file": "components/RZSRtUQhH.jsx",
+    "name": "RZSRtUQhH"
+  },
+  {
+    "id": "time",
+    "dir": "components",
+    "file": "components/time.jsx",
+    "name": "time"
+  },
+  {
+    "id": "propUtils",
+    "dir": "components",
+    "file": "components/propUtils.jsx",
+    "name": "propUtils"
+  },
+  {
+    "id": "JGjdeAovk",
+    "dir": "components",
+    "file": "components/Pricing2.jsx",
+    "name": "Pricing2"
+  },
+  {
+    "id": "JxkXufefU",
+    "dir": "pages",
+    "file": "pages/JxkXufefU.jsx",
+    "name": "JxkXufefU"
+  },
+  {
+    "id": "OyNTYCI0k",
+    "dir": "components",
+    "file": "components/ServiceCard2Center.jsx",
+    "name": "ServiceCard2Center"
+  },
+  {
+    "id": "zkbuiH68W",
+    "dir": "components",
+    "file": "components/Row.jsx",
+    "name": "Row"
+  },
+  {
+    "id": "L4JC4TYMM",
+    "dir": "components",
+    "file": "components/Vector__L4JC4T.jsx",
+    "name": "Vector__L4JC4T"
+  },
+  {
+    "id": "BYbz3YH39",
+    "dir": "components",
+    "file": "components/AIChat.jsx",
+    "name": "AIChat"
+  },
+  {
+    "id": "RL1f6QCOW",
+    "dir": "components",
+    "file": "components/Testimonial.jsx",
+    "name": "Testimonial"
+  },
+  {
+    "id": "detectAutoSizingAxis",
+    "dir": "components",
+    "file": "components/detectAutoSizingAxis.jsx",
+    "name": "detectAutoSizingAxis"
+  },
+  {
+    "id": "H4qlUsj5w",
+    "dir": "components",
+    "file": "components/Video1.jsx",
+    "name": "Video1"
+  },
+  {
+    "id": "PQDU294s0",
+    "dir": "pages",
+    "file": "pages/PQDU294s0.jsx",
+    "name": "PQDU294s0"
+  },
+  {
+    "id": "Yq_dsFNdy",
+    "dir": "components",
+    "file": "components/Animation1.jsx",
+    "name": "Animation1"
+  },
+  {
+    "id": "SDKHU7FZp",
+    "dir": "components",
+    "file": "components/AllFaq.jsx",
+    "name": "AllFaq"
+  },
+  {
+    "id": "Orb",
+    "dir": "components",
+    "file": "components/AsciiOrb.jsx",
+    "name": "AsciiOrb"
+  },
+  {
+    "id": "IXkrB0mip",
+    "dir": "pages",
+    "file": "pages/IXkrB0mip.jsx",
+    "name": "IXkrB0mip"
+  },
+  {
+    "id": "Z7hEutAUy",
+    "dir": "components",
+    "file": "components/VideoCursor.jsx",
+    "name": "VideoCursor"
+  },
+  {
+    "id": "fK3NJbxVE",
+    "dir": "components",
+    "file": "components/SLAResponse.jsx",
+    "name": "SLAResponse"
+  },
+  {
+    "id": "C43OIvOQi",
+    "dir": "components",
+    "file": "components/Button.jsx",
+    "name": "Button"
+  },
+  {
+    "id": "colorFromToken",
+    "dir": "components",
+    "file": "components/colorFromToken.jsx",
+    "name": "colorFromToken"
+  },
+  {
+    "id": "useOnNavigationTargetChange",
+    "dir": "components",
+    "file": "components/useOnNavigationTargetChange.jsx",
+    "name": "useOnNavigationTargetChange"
+  },
+  {
+    "id": "Bo3CCGXT0",
+    "dir": "components",
+    "file": "components/Vector__Bo3CCG.jsx",
+    "name": "Vector__Bo3CCG"
+  },
+  {
+    "id": "COeS_p2Q8",
+    "dir": "components",
+    "file": "components/Vector3.jsx",
+    "name": "Vector3"
+  },
+  {
+    "id": "eobKhttXw",
+    "dir": "components",
+    "file": "components/Footer.jsx",
+    "name": "Footer"
+  },
+  {
+    "id": "GZLRSjOm0",
+    "dir": "components",
+    "file": "components/MenuButton.jsx",
+    "name": "MenuButton"
+  },
+  {
+    "id": "nullstate",
+    "dir": "components",
+    "file": "components/nullstate.jsx",
+    "name": "nullstate"
+  },
+  {
+    "id": "variantUtils",
+    "dir": "components",
+    "file": "components/variantUtils.jsx",
+    "name": "variantUtils"
+  },
+  {
+    "id": "VLSO_TwGj",
+    "dir": "components",
+    "file": "components/VLSO_TwGj.jsx",
+    "name": "VLSO_TwGj"
+  },
+  {
+    "id": "useConstant",
+    "dir": "components",
+    "file": "components/useConstant.jsx",
+    "name": "useConstant"
+  },
+  {
+    "id": "index",
+    "dir": "components",
+    "file": "components/index.jsx",
+    "name": "index"
+  },
+  {
+    "id": "Time",
+    "dir": "components",
+    "file": "components/Time.jsx",
+    "name": "Time"
+  },
+  {
+    "id": "fJvnPIrQU",
+    "dir": "components",
+    "file": "components/Vector1__fJvnPI.jsx",
+    "name": "Vector1__fJvnPI"
+  },
+  {
+    "id": "c_LE9Dhpo",
+    "dir": "pages",
+    "file": "pages/c_LE9Dhpo.jsx",
+    "name": "c_LE9Dhpo"
+  },
+  {
+    "id": "fsRev258H-0",
+    "dir": "components",
+    "file": "components/fsRev258H-0.jsx",
+    "name": "fsRev258H-0"
+  },
+  {
+    "id": "fsRev258H-1",
+    "dir": "components",
+    "file": "components/fsRev258H-1.jsx",
+    "name": "fsRev258H-1"
+  },
+  {
+    "id": "fsRev258H",
+    "dir": "components",
+    "file": "components/fsRev258H.jsx",
+    "name": "fsRev258H"
+  },
+  {
+    "id": "i5xOCzUg6",
+    "dir": "components",
+    "file": "components/i5xOCzUg6.jsx",
+    "name": "i5xOCzUg6"
+  },
+  {
+    "id": "bhGfvG2ae",
+    "dir": "components",
+    "file": "components/bhGfvG2ae.jsx",
+    "name": "bhGfvG2ae"
+  },
+  {
+    "id": "PKZPBhuHM",
+    "dir": "components",
+    "file": "components/BlogCard.jsx",
+    "name": "BlogCard"
+  },
+  {
+    "id": "ImagePixels",
+    "dir": "components",
+    "file": "components/ImagePixels.jsx",
+    "name": "ImagePixels"
+  },
+  {
+    "id": "rpxHQIHys",
+    "dir": "components",
+    "file": "components/rpxHQIHys.jsx",
+    "name": "rpxHQIHys"
+  },
+  {
+    "id": "FjDwy2c34",
+    "dir": "components",
+    "file": "components/CTA.jsx",
+    "name": "CTA"
+  },
+  {
+    "id": "anTeFAVAo",
+    "dir": "components",
+    "file": "components/anTeFAVAo.jsx",
+    "name": "anTeFAVAo"
+  },
+  {
+    "id": "WiAVFnN9M",
+    "dir": "components",
+    "file": "components/Vector1__WiAVFn.jsx",
+    "name": "Vector1__WiAVFn"
+  },
+  {
+    "id": "utils",
+    "dir": "components",
+    "file": "components/utils.jsx",
+    "name": "utils"
+  },
+  {
+    "id": "Text_Opacity_Letters",
+    "dir": "components",
+    "file": "components/Text_Opacity_Letters.jsx",
+    "name": "Text_Opacity_Letters"
+  },
+  {
+    "id": "YouTube",
+    "dir": "components",
+    "file": "components/YouTube.jsx",
+    "name": "YouTube"
+  },
+  {
+    "id": "cxFw7uMI2",
+    "dir": "components",
+    "file": "components/TestimonialsSection.jsx",
+    "name": "TestimonialsSection"
+  },
+  {
+    "id": "RPT4GBlcY",
+    "dir": "components",
+    "file": "components/RPT4GBlcY.jsx",
+    "name": "RPT4GBlcY"
+  },
+  {
+    "id": "IXMm7kES5",
+    "dir": "components",
+    "file": "components/Vector__IXMm7k.jsx",
+    "name": "Vector__IXMm7k"
+  },
+  {
+    "id": "cHnmANmnh",
+    "dir": "components",
+    "file": "components/Feature4IconStack.jsx",
+    "name": "Feature4IconStack"
+  },
+  {
+    "id": "House",
+    "dir": "components",
+    "file": "components/House.jsx",
+    "name": "House"
+  },
+  {
+    "id": "clQ_rD2uf",
+    "dir": "components",
+    "file": "components/clQ_rD2uf.jsx",
+    "name": "clQ_rD2uf"
+  },
+  {
+    "id": "FJF3HCgEU",
+    "dir": "components",
+    "file": "components/CheckPriceChoice.jsx",
+    "name": "CheckPriceChoice"
+  },
+  {
+    "id": "QmLF8_0cc",
+    "dir": "components",
+    "file": "components/FaqButton.jsx",
+    "name": "FaqButton"
+  },
+  {
+    "id": "pYUt0Tb8a",
+    "dir": "components",
+    "file": "components/Vector1__pYUt0T.jsx",
+    "name": "Vector1__pYUt0T"
+  },
+  {
+    "id": "VBh12KI8r",
+    "dir": "pages",
+    "file": "pages/VBh12KI8r.jsx",
+    "name": "VBh12KI8r"
+  },
+  {
+    "id": "JgMNMenvt",
+    "dir": "components",
+    "file": "components/ButtonAnimation.jsx",
+    "name": "ButtonAnimation"
+  },
+  {
+    "id": "NEvAI2UPZ",
+    "dir": "components",
+    "file": "components/FAQ.jsx",
+    "name": "FAQ"
+  },
+  {
+    "id": "d5CVQF_7Q",
+    "dir": "components",
+    "file": "components/d5CVQF_7Q.jsx",
+    "name": "d5CVQF_7Q"
+  },
+  {
+    "id": "constants",
+    "dir": "components",
+    "file": "components/constants.jsx",
+    "name": "constants"
+  },
+  {
+    "id": "vpGdyYuyJ",
+    "dir": "components",
+    "file": "components/StatisticsCard.jsx",
+    "name": "StatisticsCard"
+  },
+  {
+    "id": "gK0W7NHHi",
+    "dir": "components",
+    "file": "components/FooterMenu.jsx",
+    "name": "FooterMenu"
+  },
+  {
+    "id": "rCYcCXU4f",
+    "dir": "components",
+    "file": "components/AILogos.jsx",
+    "name": "AILogos"
+  },
+  {
+    "id": "bn1Pbn9fz",
+    "dir": "components",
+    "file": "components/Vector__bn1Pbn.jsx",
+    "name": "Vector__bn1Pbn"
+  },
+  {
+    "id": "r76xQ0JHY",
+    "dir": "components",
+    "file": "components/ServiceCard1Center.jsx",
+    "name": "ServiceCard1Center"
+  },
+  {
+    "id": "YfJR7dJ8j",
+    "dir": "components",
+    "file": "components/YfJR7dJ8j.jsx",
+    "name": "YfJR7dJ8j"
+  },
+  {
+    "id": "tMPhT5ynv",
+    "dir": "components",
+    "file": "components/BuyCard.jsx",
+    "name": "BuyCard"
+  },
+  {
+    "id": "EscnJzDEs",
+    "dir": "components",
+    "file": "components/Prototype.jsx",
+    "name": "Prototype"
+  },
+  {
+    "id": "useRenderTarget",
+    "dir": "components",
+    "file": "components/useRenderTarget.jsx",
+    "name": "useRenderTarget"
+  },
+  {
+    "id": "jwHxuw2Vw",
+    "dir": "components",
+    "file": "components/jwHxuw2Vw.jsx",
+    "name": "jwHxuw2Vw"
+  },
+  {
+    "id": "eW88yEt7U",
+    "dir": "components",
+    "file": "components/Process.jsx",
+    "name": "Process"
+  },
+  {
+    "id": "Samp1",
+    "dir": "components",
+    "file": "components/SpeedometerProgress.jsx",
+    "name": "SpeedometerProgress"
+  },
+  {
+    "id": "pg0hYi1Qy",
+    "dir": "components",
+    "file": "components/DashButton.jsx",
+    "name": "DashButton"
+  },
+  {
+    "id": "snippets",
+    "dir": "pages",
+    "file": "pages/snippets.jsx",
+    "name": "snippets"
+  },
+  {
+    "id": "tKxHoo7uD",
+    "dir": "components",
+    "file": "components/tKxHoo7uD.jsx",
+    "name": "tKxHoo7uD"
+  },
+  {
+    "id": "useFontControls",
+    "dir": "components",
+    "file": "components/useFontControls.jsx",
+    "name": "useFontControls"
+  },
+  {
+    "id": "KsbLc3u06",
+    "dir": "components",
+    "file": "components/Socials.jsx",
+    "name": "Socials"
+  },
+  {
+    "id": "JyIGw90Nf",
+    "dir": "components",
+    "file": "components/Animation3.jsx",
+    "name": "Animation3"
+  },
+  {
+    "id": "isBrowser",
+    "dir": "components",
+    "file": "components/isBrowser.jsx",
+    "name": "isBrowser"
+  },
+  {
+    "id": "dujkHYJm9",
+    "dir": "components",
+    "file": "components/PrimaryButton__dujkHY.jsx",
+    "name": "PrimaryButton__dujkHY"
+  },
+  {
+    "id": "y44rUg31A",
+    "dir": "components",
+    "file": "components/Support.jsx",
+    "name": "Support"
+  },
+  {
+    "id": "spJpQskuY",
+    "dir": "pages",
+    "file": "pages/spJpQskuY.jsx",
+    "name": "spJpQskuY"
+  },
+  {
+    "id": "lEASnN8QN",
+    "dir": "components",
+    "file": "components/Vector.jsx",
+    "name": "Vector"
+  },
+  {
+    "id": "TWW8nErJX",
+    "dir": "components",
+    "file": "components/TWW8nErJX.jsx",
+    "name": "TWW8nErJX"
+  },
+  {
+    "id": "wkbq7xmrZ",
+    "dir": "components",
+    "file": "components/SectionTag.jsx",
+    "name": "SectionTag"
+  },
+  {
+    "id": "KJ2inr1qc",
+    "dir": "components",
+    "file": "components/ServiceCard3Center.jsx",
+    "name": "ServiceCard3Center"
+  },
+  {
+    "id": "sTpJq99aL",
+    "dir": "components",
+    "file": "components/AIAgent.jsx",
+    "name": "AIAgent"
+  },
+  {
+    "id": "hSYYuztEH",
+    "dir": "pages",
+    "file": "pages/hSYYuztEH.jsx",
+    "name": "hSYYuztEH"
+  },
+  {
+    "id": "MqdvZ7D_I",
+    "dir": "components",
+    "file": "components/Navbar.jsx",
+    "name": "Navbar"
+  },
+  {
+    "id": "Wk_f5OC_b",
+    "dir": "components",
+    "file": "components/TabsComponent.jsx",
+    "name": "TabsComponent"
+  },
+  {
+    "id": "augiA20Il",
+    "dir": "pages",
+    "file": "pages/augiA20Il.jsx",
+    "name": "augiA20Il"
+  },
+  {
+    "id": "useAutoMotionValue",
+    "dir": "components",
+    "file": "components/useAutoMotionValue.jsx",
+    "name": "useAutoMotionValue"
+  },
+  {
+    "id": "FitTextPro",
+    "dir": "components",
+    "file": "components/VerticalText.jsx",
+    "name": "VerticalText"
+  },
+  {
+    "id": "Video",
+    "dir": "components",
+    "file": "components/Video.jsx",
+    "name": "Video"
+  },
+  {
+    "id": "p0c63dCGP",
+    "dir": "components",
+    "file": "components/p0c63dCGP.jsx",
+    "name": "p0c63dCGP"
+  },
+  {
+    "id": "v8ZdJihBg",
+    "dir": "components",
+    "file": "components/General.jsx",
+    "name": "General"
+  },
+  {
+    "id": "pbTETus5o",
+    "dir": "pages",
+    "file": "pages/pbTETus5o.jsx",
+    "name": "pbTETus5o"
+  },
+  {
+    "id": "dctoRyc_W",
+    "dir": "components",
+    "file": "components/CaseStudyCard.jsx",
+    "name": "CaseStudyCard"
+  },
+  {
+    "id": "siteMetadata",
+    "dir": "components",
+    "file": "components/siteMetadata.jsx",
+    "name": "siteMetadata"
+  },
+  {
+    "id": "gqt6Ypv9z",
+    "dir": "components",
+    "file": "components/gqt6Ypv9z.jsx",
+    "name": "gqt6Ypv9z"
+  },
+  {
+    "id": "AnimatedNumberCounter_Prod",
+    "dir": "components",
+    "file": "components/AnimatedNumberCounter.jsx",
+    "name": "AnimatedNumberCounter"
+  },
+  {
+    "id": "MsvfqKTJT",
+    "dir": "components",
+    "file": "components/Animation4.jsx",
+    "name": "Animation4"
+  },
+  {
+    "id": "u4a_5fmkN",
+    "dir": "components",
+    "file": "components/u4a_5fmkN.jsx",
+    "name": "u4a_5fmkN"
+  },
+  {
+    "id": "tDqK8gZq_",
+    "dir": "components",
+    "file": "components/Animation2.jsx",
+    "name": "Animation2"
+  },
+  {
+    "id": "Phosphor",
+    "dir": "components",
+    "file": "components/Phosphor.jsx",
+    "name": "Phosphor"
+  },
+  {
+    "id": "L2qDMQpXy",
+    "dir": "components",
+    "file": "components/L2qDMQpXy.jsx",
+    "name": "L2qDMQpXy"
+  },
+  {
+    "id": "tKG62RHO6",
+    "dir": "components",
+    "file": "components/Vector__tKG62R.jsx",
+    "name": "Vector__tKG62R"
+  },
+  {
+    "id": "TNysg0QnN",
+    "dir": "components",
+    "file": "components/TNysg0QnN.jsx",
+    "name": "TNysg0QnN"
+  },
+  {
+    "id": "bXbQpP0GQ-0",
+    "dir": "components",
+    "file": "components/bXbQpP0GQ-0.jsx",
+    "name": "bXbQpP0GQ-0"
+  },
+  {
+    "id": "bXbQpP0GQ-1",
+    "dir": "components",
+    "file": "components/bXbQpP0GQ-1.jsx",
+    "name": "bXbQpP0GQ-1"
+  },
+  {
+    "id": "bXbQpP0GQ",
+    "dir": "components",
+    "file": "components/bXbQpP0GQ.jsx",
+    "name": "bXbQpP0GQ"
+  },
+  {
+    "id": "uGXecSHVG",
+    "dir": "components",
+    "file": "components/SystemLoadAnimation.jsx",
+    "name": "SystemLoadAnimation"
+  },
+  {
+    "id": "useOnChange",
+    "dir": "components",
+    "file": "components/useOnChange.jsx",
+    "name": "useOnChange"
+  },
+  {
+    "id": "luZ_i7WcX",
+    "dir": "components",
+    "file": "components/luZ_i7WcX.jsx",
+    "name": "luZ_i7WcX"
+  },
+  {
+    "id": "VIXQ9WRdx",
+    "dir": "components",
+    "file": "components/TokenUsage.jsx",
+    "name": "TokenUsage"
+  },
+  {
+    "id": "t1kuFz9xy",
+    "dir": "components",
+    "file": "components/FeaturesButton.jsx",
+    "name": "FeaturesButton"
+  },
+  {
+    "id": "useUniqueClassName",
+    "dir": "components",
+    "file": "components/useUniqueClassName.jsx",
+    "name": "useUniqueClassName"
+  },
+  {
+    "id": "N9VdX2EKK",
+    "dir": "components",
+    "file": "components/N9VdX2EKK.jsx",
+    "name": "N9VdX2EKK"
+  },
+  {
+    "id": "NJ_XV6567",
+    "dir": "components",
+    "file": "components/NJ_XV6567.jsx",
+    "name": "NJ_XV6567"
+  },
+  {
+    "id": "useControlledState",
+    "dir": "components",
+    "file": "components/useControlledState.jsx",
+    "name": "useControlledState"
+  },
+  {
+    "id": "FVQYQxS4q",
+    "dir": "components",
+    "file": "components/BuyCtaButton.jsx",
+    "name": "BuyCtaButton"
+  },
+  {
+    "id": "SlideShow",
+    "dir": "components",
+    "file": "components/Slideshow.jsx",
+    "name": "Slideshow"
+  },
+  {
+    "id": "index.es",
+    "dir": "components",
+    "file": "components/index.es.jsx",
+    "name": "index.es"
+  },
+  {
+    "id": "client",
+    "dir": "components",
+    "file": "components/client.jsx",
+    "name": "client"
+  },
+  {
+    "id": "jsx-runtime",
+    "dir": "components",
+    "file": "components/jsx-runtime.jsx",
+    "name": "jsx-runtime"
+  },
+  {
+    "id": "ssg-sandbox_shims",
+    "dir": "components",
+    "file": "components/ssg-sandbox_shims.jsx",
+    "name": "ssg-sandbox_shims"
+  }
+]
