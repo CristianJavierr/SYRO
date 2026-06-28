@@ -153,14 +153,20 @@ video {
 
 .brand-link {
   display: flex;
-  width: 144.227px;
+  width: auto;
   height: 38px;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-start;
   overflow: clip;
   color: var(--white);
   text-decoration: none;
+}
+
+.brand-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .brand-mark {
@@ -393,7 +399,7 @@ video {
 .logo-track {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 50px;
   width: max-content;
   animation: ticker 18s linear infinite;
 }
@@ -401,7 +407,7 @@ video {
 .logo-track img {
   width: 169px;
   height: 51px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .hero-copy {
@@ -421,13 +427,14 @@ video {
 
 .hero-copy h1 {
   margin: 0;
-  width: min(600px, 100%);
-  max-width: 600px;
+  width: min(900px, 100%);
+  max-width: 900px;
   color: var(--white);
-  font-size: 100px;
+  font-family: "Gasoek One", sans-serif;
+  font-size: clamp(134px, 17.3vw, 230px);
   font-weight: 400;
-  line-height: 100px;
-  letter-spacing: -3px;
+  line-height: 1.0;
+  letter-spacing: -2px;
 }
 
 .hero-copy p {
@@ -881,7 +888,7 @@ video {
   position: relative;
   width: 169px;
   height: 51px;
-  object-fit: cover;
+  object-fit: contain;
   z-index: 10000;
   filter: invert(0.9);
 }
@@ -2434,8 +2441,8 @@ video {
   .hero-copy h1 {
     width: 100%;
     font-size: 54px;
-    line-height: 54px;
-    letter-spacing: -1.62px;
+    line-height: 1.0;
+    letter-spacing: -1px;
   }
 
   .hero-copy p {
