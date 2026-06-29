@@ -841,8 +841,6 @@ var lastScrollY = window.scrollY;
 var scrollGravityY = 0;
 
 window.addEventListener("scroll", () => {
-  if (isFluidMobile) return;
-
   const currentScrollY = window.scrollY;
   const deltaY = currentScrollY - lastScrollY;
   lastScrollY = currentScrollY;
@@ -851,13 +849,13 @@ window.addEventListener("scroll", () => {
 
   // Make the scroll reaction extremely gentle and smooth
   // Clamp deltaY to a low limit to prevent violent jerks
-  const deltaLimit = 35;
+  const deltaLimit = isFluidMobile ? 8 : 35;
+  const impulse = isFluidMobile ? 0.14 : 1.0;
+  const gravityLimit = isFluidMobile ? 4 : 35;
   const clampedDelta = Math.max(-deltaLimit, Math.min(deltaLimit, deltaY));
   
-  // Apply scroll impulse with force coefficient set to 1.0
-  scrollGravityY += clampedDelta * 1.0;
-  // Clamp the maximum scroll gravity to a very safe range [-35, 35]
-  scrollGravityY = Math.max(-35, Math.min(35, scrollGravityY));
+  scrollGravityY += clampedDelta * impulse;
+  scrollGravityY = Math.max(-gravityLimit, Math.min(gravityLimit, scrollGravityY));
 }, { passive: true });
 
 
@@ -1143,15 +1141,12 @@ let resizeTimeout;
 let lastLayoutWidth = containerWidth;
 let lastLayoutHeight = containerHeight;
 window.addEventListener("resize", () => {
+  if (isFluidMobile) return;
+
   const nextWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
   const nextHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
   const widthDelta = Math.abs(nextWidth - lastLayoutWidth);
   const heightDelta = Math.abs(nextHeight - lastLayoutHeight);
-
-  if (isFluidMobile && widthDelta < 24 && heightDelta > 0) {
-    lastLayoutHeight = nextHeight;
-    return;
-  }
 
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
@@ -1389,32 +1384,38 @@ update();
 // Scroll activation IntersectionObserver
 let speedTimeout = null;
 let hasSpedUp = false;
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      scene.paused = false;
-      if (!hasSpedUp) {
-        scene.dt = SPEED_BASE; // Start slow only on first viewing
-        if (!speedTimeout) {
-          speedTimeout = setTimeout(() => {
-            scene.dt = SPEED_2; // Auto transition to fast after 5s
-            hasSpedUp = true;   // Speed up has occurred, keep it fast permanently
-            speedTimeout = null;
-          }, 5000);
+if (isFluidMobile) {
+  scene.paused = false;
+  scene.dt = SPEED_2;
+  hasSpedUp = true;
+} else {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        scene.paused = false;
+        if (!hasSpedUp) {
+          scene.dt = SPEED_BASE; // Start slow only on first viewing
+          if (!speedTimeout) {
+            speedTimeout = setTimeout(() => {
+              scene.dt = SPEED_2; // Auto transition to fast after 5s
+              hasSpedUp = true;   // Speed up has occurred, keep it fast permanently
+              speedTimeout = null;
+            }, 5000);
+          }
+        }
+      } else {
+        scene.paused = true;
+        // If we scroll away before 5 seconds have elapsed, pause the timer so it resumes when scrolling back
+        if (!hasSpedUp && speedTimeout) {
+          clearTimeout(speedTimeout);
+          speedTimeout = null;
         }
       }
-    } else {
-      scene.paused = true;
-      // If we scroll away before 5 seconds have elapsed, pause the timer so it resumes when scrolling back
-      if (!hasSpedUp && speedTimeout) {
-        clearTimeout(speedTimeout);
-        speedTimeout = null;
-      }
-    }
-  });
-}, { threshold: 0.1 });
-if (containerEl) {
-  observer.observe(containerEl);
+    });
+  }, { threshold: 0.1 });
+  if (containerEl) {
+    observer.observe(containerEl);
+  }
 }
 
 // Start loading custom SVG logo image
