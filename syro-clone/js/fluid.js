@@ -19,6 +19,13 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+export function initSyroFluid() {
+if (window.__syroFluidStarted) return;
+const containerProbe = document.getElementById("fluid-container");
+if (!containerProbe || !containerProbe.querySelector("canvas") || !containerProbe.querySelector(".render")) return;
+window.__syroFluidStarted = true;
+console.log("SYRO fluid initialized");
+
 const TARGET_LONG_SIDE = 128 * 74;
 const MIN_GRID_SIZE = 8;
 const CELL_CROP_X = 1;
@@ -818,6 +825,7 @@ var scene = {
   obstacleVelY: 0.0,
   fluid: null,
 };
+let f = null;
 
 
 // Custom Logo SDF variables and generator
@@ -864,15 +872,19 @@ function generateLogoSdf() {
   // SVG aspect ratio (width=2889, height=1849)
   const logoAspect = 2889.0 / 1849.0;
   
-  // Scale logo to fill about 50% of the simulation grid height
-  const scaleY = Y_RESOLUTION * 0.45;
+  const isMobile = window.matchMedia("(max-width: 768px)").matches || X_RESOLUTION < Y_RESOLUTION;
+  const scaleY = Y_RESOLUTION * (isMobile ? 0.31 : 0.45);
   const scaleX = scaleY * logoAspect;
   
   const dx = (X_RESOLUTION - scaleX) / 2;
   const dy = (Y_RESOLUTION - scaleY) / 2;
 
-  // Draw onto offscreen canvas
+  // Draw onto offscreen canvas, flipped horizontally to match the site composition.
+  oCtx.save();
+  oCtx.translate(X_RESOLUTION, 0);
+  oCtx.scale(-1, 1);
   oCtx.drawImage(logoImg, dx, dy, scaleX, scaleY);
+  oCtx.restore();
 
   const imgData = oCtx.getImageData(0, 0, X_RESOLUTION, Y_RESOLUTION);
   const pixels = imgData.data;
@@ -1383,3 +1395,11 @@ logoImg.src = "./assets/image 63 (2).svg";
 logoImg.onload = () => {
   generateLogoSdf();
 };
+
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSyroFluid, { once: true });
+} else {
+  requestAnimationFrame(initSyroFluid);
+}

@@ -96,8 +96,111 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 body {
   overflow-x: hidden;
+}
+
+body.is-loading {
+  overflow: hidden;
+}
+
+.entry-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  color: var(--white);
+}
+
+.entry-counter {
+  position: fixed;
+  top: 50svh;
+  left: 40px;
+  z-index: 82;
+  transform: translateY(-50%) scale(0.25);
+  transform-origin: left bottom;
+  opacity: 1;
+  will-change: transform, opacity;
+}
+
+.entry-counter__value {
+  display: flex;
+  font-family: "Gasoek One", sans-serif;
+  font-size: clamp(64px, 25vw, 360px);
+  font-weight: 400;
+  line-height: 0.86;
+  letter-spacing: 0;
+  color: var(--white);
+}
+
+.entry-counter__digit-mask {
+  display: inline-block;
+  overflow: clip;
+}
+
+.entry-counter__digit {
+  display: inline-block;
+  position: relative;
+  will-change: transform;
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.entry-counter.is-exiting .entry-counter__digit {
+  transform: translateX(-110%);
+}
+
+.entry-progress-bar {
+  position: fixed;
+  left: 40px;
+  right: 40px;
+  bottom: 96px;
+  z-index: 82;
+  height: 1.5px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
+
+.entry-progress-bar__track,
+.entry-progress-bar__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+}
+
+.entry-progress-bar__track {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.entry-progress-bar__fill {
+  background: var(--white);
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+body:not(.is-loading) .entry-loader {
+  display: none;
 }
 
 body::after {
@@ -144,6 +247,25 @@ video {
   justify-content: space-between;
   overflow: clip;
   pointer-events: none;
+}
+
+body.is-loading .site-header,
+body.is-loading .hero-services,
+body.is-loading .logo-strip,
+body.is-loading .hero-copy,
+body.is-loading .page-shell > *:not(.hero),
+body.is-loading .site-footer {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.site-header,
+.hero-services,
+.logo-strip,
+.hero-copy,
+.page-shell > *:not(.hero),
+.site-footer {
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .brand-link,
@@ -348,19 +470,50 @@ video {
 .hero-video {
   position: absolute;
   inset: 0;
-  z-index: -2;
+  z-index: 0;
   overflow: hidden;
   opacity: 1;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  will-change: clip-path;
   -webkit-mask: radial-gradient(112% 108% at 56.2% -11.3%, #000 90.1306%, transparent 100%);
   mask: radial-gradient(112% 108% at 56.2% -11.3%, #000 90.1306%, transparent 100%);
 }
 
 .hero-video video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   filter: grayscale(1) contrast(1.44);
+  transform: translate(-50%, -50%) scale(1);
+  will-change: transform;
+}
+
+body.is-loading .hero-video {
+  clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+}
+
+body.is-loading .hero-video video {
+  transform: translate(-50%, -50%) scale(2);
+}
+
+body.is-loading.entry-window .hero-video {
+  clip-path: polygon(35% 35%, 65% 35%, 65% 65%, 35% 65%);
+}
+
+body.is-loading.entry-window .hero-video video {
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+body.is-loading.entry-open .hero-video {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+body.is-loading.entry-open .hero-video video {
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .hero-services {
@@ -379,15 +532,26 @@ video {
 .hero-services p {
   margin: 0;
   color: var(--white);
-  font-size: 34px;
+  font-size: 22px;
   font-weight: 400;
-  line-height: 40.8px;
-  letter-spacing: -1.02px;
+  line-height: 26.4px;
+  letter-spacing: -0.66px;
+  opacity: 0;
+}
+
+.hero-services-line-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.hero-services-line {
+  display: inline-block;
+  will-change: transform;
 }
 
 .logo-strip {
   position: absolute;
-  top: 314px;
+  top: 250px;
   left: 50%;
   z-index: 2;
   width: 25%;
@@ -398,15 +562,20 @@ video {
 
 .logo-track {
   display: flex;
-  align-items: center;
-  gap: 50px;
   width: max-content;
   animation: ticker 18s linear infinite;
 }
 
+.logo-set {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  padding-right: 50px;
+}
+
 .logo-track img {
-  width: 169px;
-  height: 51px;
+  width: 120px;
+  height: 36px;
   object-fit: contain;
 }
 
@@ -435,6 +604,22 @@ video {
   font-weight: 400;
   line-height: 1.0;
   letter-spacing: -2px;
+}
+
+.hero-title-char-mask {
+  display: inline-block;
+  overflow: clip;
+}
+
+.hero-title-char {
+  display: inline-block;
+  position: relative;
+  will-change: transform;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.is-loading .hero-title-char {
+  transform: translateX(110%);
 }
 
 .hero-copy p {
@@ -542,7 +727,7 @@ video {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-530px);
+    transform: translateX(-50%);
   }
 }
 
@@ -595,6 +780,8 @@ video {
   align-items: center;
   height: 54px;
   padding: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .avatar-circle {
@@ -618,6 +805,7 @@ video {
 
 .avatar-circle img {
   object-fit: contain;
+  opacity: 0;
 }
 
 .avatar-circle:nth-child(1) img {
@@ -662,6 +850,22 @@ video {
   line-height: 27.2px;
   letter-spacing: 0.32px;
   color: var(--white);
+  will-change: transform;
+  opacity: 0;
+}
+
+.integrations-description-measure-word {
+  display: inline;
+}
+
+.integrations-description-line-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.integrations-description-line {
+  display: inline-block;
+  will-change: transform;
 }
 
 /* Case Studies Intro Section (Desktop) */
@@ -746,10 +950,27 @@ video {
   font-family: "Inter Display", "Inter Display Placeholder", sans-serif;
   font-size: 60px;
   font-weight: 400;
-  line-height: 60px;
+  line-height: 0.95;
   letter-spacing: -1.8px;
   text-align: left;
   color: var(--black);
+  overflow: hidden;
+  padding-top: 0.18em;
+}
+
+.products-title-word,
+.products-title-char {
+  display: inline-block;
+}
+
+.products-title-word {
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.products-title-char {
+  transform-origin: 50% 100%;
+  will-change: transform;
 }
 
 .case-studies-intro__description {
@@ -763,6 +984,22 @@ video {
   letter-spacing: 0.32px;
   text-align: left;
   color: var(--black);
+  will-change: transform;
+  opacity: 0;
+}
+
+.products-description-measure-word {
+  display: inline;
+}
+
+.products-description-line-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.products-description-line {
+  display: inline-block;
+  will-change: transform;
 }
 
 /* Case Studies List Section (Desktop) */
@@ -813,11 +1050,29 @@ video {
 .case-studies-list__items li {
   position: relative;
   background: transparent;
-  border-top: 1px solid rgba(6, 6, 6, 0.12);
+  --case-line-scale: 0;
 }
 
-.case-studies-list__items li:last-child {
-  border-bottom: 1px solid rgba(6, 6, 6, 0.12);
+.case-studies-list__items li::before,
+.case-studies-list__items li:last-child::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  height: 1px;
+  background: rgba(6, 6, 6, 0.12);
+  transform: scaleX(var(--case-line-scale));
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.case-studies-list__items li::before {
+  top: 0;
+}
+
+.case-studies-list__items li:last-child::after {
+  bottom: 0;
 }
 
 .case-study {
@@ -890,7 +1145,25 @@ video {
   height: 51px;
   object-fit: contain;
   z-index: 10000;
-  filter: invert(0.9);
+  filter: invert(1);
+  transition: filter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, filter;
+}
+
+.case-study:hover .case-study__logo {
+  filter: none;
+}
+
+.case-study-logo-mask {
+  position: relative;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 169px;
+  height: 51px;
+  overflow: hidden;
+  will-change: transform;
 }
 
 .case-study__content {
@@ -963,6 +1236,21 @@ video {
   line-height: 21px;
   color: inherit;
   font-optical-sizing: auto;
+  will-change: transform;
+}
+
+.case-study-description-measure-word {
+  display: inline;
+}
+
+.case-study-description-line-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.case-study-description-line {
+  display: inline-block;
+  will-change: transform;
 }
 
 .case-study__title-wrapper {
@@ -987,6 +1275,37 @@ video {
   line-height: 28.6px;
   letter-spacing: 0.44px;
   color: inherit;
+  overflow: hidden;
+}
+
+.case-study__title[data-split="true"] {
+  letter-spacing: 0;
+}
+
+.syro-pos-title-char {
+  display: inline-block;
+  height: 1.3em;
+  margin-right: 0.44px;
+  overflow: hidden;
+  transform-origin: 50% 100%;
+  vertical-align: top;
+}
+
+.syro-pos-title-char:last-child {
+  margin-right: 0;
+}
+
+.syro-pos-title-reel {
+  display: block;
+  width: 100%;
+  will-change: transform;
+}
+
+.syro-pos-title-reel-glyph {
+  display: block;
+  height: 1.3em;
+  line-height: 1.3em;
+  text-align: center;
 }
 
 .case-study__body {
@@ -1052,7 +1371,8 @@ video {
   position: relative;
   z-index: 2;
   display: flex;
-  height: 481.305px;
+  height: auto;
+  min-height: 481.305px;
   overflow: clip;
   flex-direction: column;
   align-items: center;
@@ -1127,7 +1447,8 @@ video {
   display: flex;
   width: 756px;
   max-width: 50%;
-  height: 481.305px;
+  height: auto;
+  min-height: 481.305px;
   padding: 200px 30px 50px;
   flex-direction: column;
   align-items: flex-start;
@@ -1178,6 +1499,7 @@ video {
   letter-spacing: -1.8px;
   text-align: left;
   color: var(--white);
+  opacity: 0;
 }
 
 .product-features-intro__description {
@@ -1822,6 +2144,14 @@ video {
   width: 50px;
   height: 50px;
   object-fit: contain;
+  opacity: 0; /* Oculto temporalmente por reemplazo */
+}
+
+.platform-integrations__grid figure:nth-child(1) img,
+.platform-integrations__grid figure:nth-child(2) img,
+.platform-integrations__grid figure:nth-child(3) img {
+  opacity: 1 !important;
+  filter: brightness(0) invert(1) !important;
 }
 
 /* Footer */
@@ -2141,6 +2471,7 @@ video {
   line-height: 23.4px;
   letter-spacing: 0.36px;
   color: var(--white);
+  opacity: 0;
 }
 
 .service-desc {
@@ -2151,6 +2482,21 @@ video {
   line-height: 25.5px;
   letter-spacing: 0.3px;
   color: rgba(255, 255, 255, 0.85);
+  opacity: 0;
+}
+
+.service-desc-measure-word {
+  display: inline;
+}
+
+.service-desc-line-mask {
+  display: block;
+  overflow: hidden;
+}
+
+.service-desc-line {
+  display: inline-block;
+  will-change: transform;
 }
 
 
@@ -2404,9 +2750,9 @@ video {
   }
 
   .hero-services p {
-    font-size: 22px;
-    line-height: 26.4px;
-    letter-spacing: -0.66px;
+    font-size: 18px;
+    line-height: 21.6px;
+    letter-spacing: -0.5px;
   }
 
   .logo-strip {
@@ -2421,8 +2767,14 @@ video {
     order: 3;
   }
 
-  .logo-track {
+  .logo-set {
     gap: 10px;
+    padding-right: 10px;
+  }
+
+  .logo-track img {
+    width: 100px;
+    height: 30px;
   }
 
   .hero-copy {
@@ -2867,4 +3219,51 @@ video {
   text-align: left;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+/* Custom Cursor Follower for Case Studies */
+.preview-follower {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 260px;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;
+}
+
+.preview-follower__inner {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.15s ease, transform 0.6s cubic-bezier(0.65, 0.1, 0, 1);
+  overflow: hidden;
+}
+
+.preview-follower .case-study__image {
+  position: relative;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 1 !important;
+  transition: none !important;
+  object-fit: cover;
+}
+
+@media (hover: hover) and (min-width: 992px) {
+  .preview-follower {
+    display: block;
+  }
+
+  body:has([data-follower-collection]:hover) .preview-follower__inner {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .case-study:hover .case-study__image {
+    opacity: 0;
+  }
 }

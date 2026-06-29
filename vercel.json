@@ -1,0 +1,5 @@
+{
+  "installCommand": "cd syro-clone && npm install",
+  "buildCommand": "cd syro-clone && npm run build",
+  "outputDirectory": "syro-clone/dist"
+}
