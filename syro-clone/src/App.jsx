@@ -11,7 +11,7 @@ export default function App() {
       });
     }, { threshold: 0.15 });
 
-    document.querySelectorAll(".services").forEach((el) => observer.observe(el));
+    document.querySelectorAll(".services, .service-card").forEach((el) => observer.observe(el));
 
     let disposed = false;
 

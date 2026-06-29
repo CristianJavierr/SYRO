@@ -2427,9 +2427,17 @@ body.is-loading .hero-title-char {
   transition: stroke 0.3s ease, opacity 0.4s ease;
 }
 
-/* Play the draw animation ONCE when scrolled into view (slower, cinematic effect) */
-.services.visible .illustration-container path {
-  animation: drawPathsOnce 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Play the draw animation when scrolled into view (slower, cinematic effect) */
+@media (min-width: 768px) {
+  .services.visible .illustration-container path {
+    animation: drawPathsOnce 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@media (max-width: 767px) {
+  .service-card.visible .illustration-container path {
+    animation: drawPathsOnce 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
 /* Base keyframe animation to draw the outlines once and stop at completion */
