@@ -407,44 +407,86 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let resetCall;
+    const setCardHidden = (c) => {
+      c.resetCall?.kill();
+
+      if (c.titleChars.length) {
+        window.gsap.killTweensOf(c.titleChars);
+        window.gsap.set(c.titleChars, {
+          y: "100%",
+          rotate: 0,
+          transformOrigin: "50% 100%",
+        });
+      }
+      if (c.descLines.length) {
+        window.gsap.killTweensOf([c.desc, ...c.descLines]);
+        window.gsap.set(c.desc, { y: 24, opacity: 0 });
+        window.gsap.set(c.descLines, { yPercent: 110 });
+      }
+    };
 
     const setHidden = () => {
-      cardData.forEach(c => {
-        if (c.titleChars.length) {
-          window.gsap.killTweensOf(c.titleChars);
-          window.gsap.set(c.titleChars, {
-            y: "100%",
-            rotate: 0,
-            transformOrigin: "50% 100%",
-          });
-        }
-        if (c.descLines.length) {
-          window.gsap.killTweensOf([c.desc, ...c.descLines]);
-          window.gsap.set(c.desc, { y: 24, opacity: 0 });
-          window.gsap.set(c.descLines, { yPercent: 110 });
-        }
-      });
+      cardData.forEach(setCardHidden);
+    };
+
+    const setCardReady = (c) => {
+      c.resetCall?.kill();
+
+      if (c.titleChars.length) {
+        window.gsap.killTweensOf(c.titleChars);
+        window.gsap.set(c.titleChars, {
+          y: "1em",
+          rotate: 10,
+          transformOrigin: "50% 100%",
+        });
+      }
+      if (c.descLines.length) {
+        window.gsap.killTweensOf([c.desc, ...c.descLines]);
+        window.gsap.set(c.desc, { y: 24, opacity: 0 });
+        window.gsap.set(c.descLines, { yPercent: 110 });
+      }
+    };
+
+    const animateCard = (c, delay = 0) => {
+      setCardReady(c);
+
+      const tl = window.gsap.timeline({ delay });
+
+      if (c.titleChars.length) {
+        tl.to(c.titleChars, {
+          y: "0em",
+          rotate: 0,
+          duration: 0.55,
+          ease: "power3.out",
+          stagger: 0.02,
+          overwrite: true,
+        }, 0);
+      }
+
+      if (c.descLines.length) {
+        tl.to(c.desc, {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          ease: "power3.out",
+        }, 0.15)
+        .to(c.descLines, {
+          yPercent: 0,
+          duration: 0.55,
+          ease: "power3.out",
+          stagger: 0.06,
+          overwrite: true,
+        }, 0.20);
+      }
+    };
+
+    const resetCardAfterDelay = (c) => {
+      c.resetCall?.kill();
+      c.resetCall = window.gsap.delayedCall(0.1, () => setCardHidden(c));
     };
 
     const playIn = () => {
-      resetCall?.kill();
-      
-      cardData.forEach(c => {
-        if (c.titleChars.length) {
-          window.gsap.killTweensOf(c.titleChars);
-          window.gsap.set(c.titleChars, {
-            y: "1em",
-            rotate: 10,
-            transformOrigin: "50% 100%",
-          });
-        }
-        if (c.descLines.length) {
-          window.gsap.killTweensOf([c.desc, ...c.descLines]);
-          window.gsap.set(c.desc, { y: 24, opacity: 0 });
-          window.gsap.set(c.descLines, { yPercent: 110 });
-        }
-      });
+      cardData.forEach(c => c.resetCall?.kill());
 
       const tl = window.gsap.timeline();
       
@@ -481,10 +523,26 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const resetAfterDelay = () => {
-      resetCall = window.gsap.delayedCall(0.1, setHidden);
+      cardData.forEach(resetCardAfterDelay);
     };
 
     setHidden();
+
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      cardData.forEach((c) => {
+        window.ScrollTrigger.create({
+          trigger: c.title?.closest(".service-card") ?? section,
+          start: "top 82%",
+          end: "bottom 12%",
+          onEnter: () => animateCard(c),
+          onEnterBack: () => animateCard(c),
+          onLeave: () => resetCardAfterDelay(c),
+          onLeaveBack: () => resetCardAfterDelay(c),
+          invalidateOnRefresh: true,
+        });
+      });
+      return;
+    }
 
     window.ScrollTrigger.create({
       trigger: section,
