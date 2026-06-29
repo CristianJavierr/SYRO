@@ -7,6 +7,13 @@ export default function App() {
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
+        if (entry.target.classList.contains("service-card")) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible", "has-drawn");
+          }
+          return;
+        }
+
         entry.target.classList.toggle("visible", entry.isIntersecting);
       });
     }, { threshold: 0.15 });

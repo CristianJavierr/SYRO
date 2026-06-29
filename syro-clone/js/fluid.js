@@ -873,7 +873,7 @@ function generateLogoSdf() {
   const logoAspect = 2889.0 / 1849.0;
   
   const isMobile = window.matchMedia("(max-width: 768px)").matches || X_RESOLUTION < Y_RESOLUTION;
-  const scaleY = Y_RESOLUTION * (isMobile ? 0.31 : 0.45);
+  const scaleY = Y_RESOLUTION * (isMobile ? 0.24 : 0.45);
   const scaleX = scaleY * logoAspect;
   
   const dx = (X_RESOLUTION - scaleX) / 2;
@@ -1047,6 +1047,9 @@ function setObstacle(x, y, reset) {
 // interaction -------------------------------------------------------
 
 var mouseDown = false;
+const isFluidMobile =
+  window.matchMedia("(max-width: 768px)").matches ||
+  window.matchMedia("(pointer: coarse)").matches;
 
 function startDrag(x, y) {
   let bounds = canvasEl.getBoundingClientRect();
@@ -1079,44 +1082,46 @@ function endDrag() {
   scene.obstacleVelY = 0.0;
 }
 
-containerEl.addEventListener("mousedown", (event) => {
-  scene.obstacleRadius = 0.0;
-  scene.dt = SPEED_1;
-  startDrag(event.x, event.y);
-});
+if (!isFluidMobile) {
+  containerEl.addEventListener("mousedown", (event) => {
+    scene.obstacleRadius = 0.0;
+    scene.dt = SPEED_1;
+    startDrag(event.x, event.y);
+  });
 
-containerEl.addEventListener("mouseup", (event) => {
-  scene.dt = SPEED_2;
-  endDrag();
-});
+  containerEl.addEventListener("mouseup", (event) => {
+    scene.dt = SPEED_2;
+    endDrag();
+  });
 
-containerEl.addEventListener("mousemove", (event) => {
-  drag(event.x, event.y);
-});
+  containerEl.addEventListener("mousemove", (event) => {
+    drag(event.x, event.y);
+  });
 
-containerEl.addEventListener("touchstart", (event) => {
-  event.preventDefault();
-  scene.obstacleRadius = 0.0;
-  scene.dt = SPEED_1;
-  startDrag(event.touches[0].clientX, event.touches[0].clientY);
-});
-
-containerEl.addEventListener("touchend", (event) => {
-  scene.dt = SPEED_2;
-  endDrag();
-});
-
-containerEl.addEventListener(
-  "touchmove",
-  (event) => {
+  containerEl.addEventListener("touchstart", (event) => {
     event.preventDefault();
-    event.stopImmediatePropagation();
-    drag(event.touches[0].clientX, event.touches[0].clientY);
-  },
-  {
-    passive: false,
-  }
-);
+    scene.obstacleRadius = 0.0;
+    scene.dt = SPEED_1;
+    startDrag(event.touches[0].clientX, event.touches[0].clientY);
+  });
+
+  containerEl.addEventListener("touchend", (event) => {
+    scene.dt = SPEED_2;
+    endDrag();
+  });
+
+  containerEl.addEventListener(
+    "touchmove",
+    (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      drag(event.touches[0].clientX, event.touches[0].clientY);
+    },
+    {
+      passive: false,
+    }
+  );
+}
 
 document.addEventListener("keydown", (event) => {
   switch (event.key) {
@@ -1189,10 +1194,12 @@ async function requestDeviceMotion() {
   }
 }
 
-canvasEl.addEventListener("click", requestDeviceMotion, { once: true });
-document.addEventListener("touchend", requestDeviceMotion, {
-  once: true,
-});
+if (!isFluidMobile) {
+  canvasEl.addEventListener("click", requestDeviceMotion, { once: true });
+  document.addEventListener("touchend", requestDeviceMotion, {
+    once: true,
+  });
+}
 function setupDeviceMotion() {
   window.addEventListener("devicemotion", (event) => {
     console.log("Device motion event:", event);
