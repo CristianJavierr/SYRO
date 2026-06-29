@@ -2429,7 +2429,7 @@ body.is-loading .hero-title-char {
 
 /* Play the draw animation when scrolled into view (slower, cinematic effect) */
 @media (min-width: 768px) {
-  .services.visible .illustration-container path {
+  .services.has-drawn .illustration-container path {
     animation: drawPathsOnce 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }

@@ -7,7 +7,10 @@ export default function App() {
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.target.classList.contains("service-card")) {
+        if (
+          entry.target.classList.contains("service-card") ||
+          entry.target.classList.contains("services")
+        ) {
           if (entry.isIntersecting) {
             entry.target.classList.add("visible", "has-drawn");
           }

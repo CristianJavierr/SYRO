@@ -43,6 +43,19 @@ const initLenis = () => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  const RESET_VIEWPORT_MARGIN = 96;
+  const isFullyAboveViewport = (el, margin = RESET_VIEWPORT_MARGIN) =>
+    !!el && el.getBoundingClientRect().bottom < -margin;
+  const isFullyBelowViewport = (el, margin = RESET_VIEWPORT_MARGIN) =>
+    !!el && el.getBoundingClientRect().top > window.innerHeight + margin;
+  const resetAfterTrueLeave = (el, direction, reset) => {
+    if (direction === 1 && isFullyAboveViewport(el)) {
+      reset();
+    } else if (direction === -1 && isFullyBelowViewport(el)) {
+      reset();
+    }
+  };
+
   const splitHeroTitle = () => {
     const title = document.querySelector(".hero-copy h1");
 
@@ -160,8 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -35%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(section, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(section, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
@@ -290,8 +303,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -45%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(description, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(description, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
@@ -356,8 +369,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -25%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(section, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(section, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
@@ -536,8 +549,8 @@ document.addEventListener("DOMContentLoaded", () => {
           end: "bottom 12%",
           onEnter: () => animateCard(c),
           onEnterBack: () => animateCard(c),
-          onLeave: () => resetCardAfterDelay(c),
-          onLeaveBack: () => resetCardAfterDelay(c),
+          onLeave: () => resetAfterTrueLeave(c.title?.closest(".service-card"), 1, () => resetCardAfterDelay(c)),
+          onLeaveBack: () => resetAfterTrueLeave(c.title?.closest(".service-card"), -1, () => resetCardAfterDelay(c)),
           invalidateOnRefresh: true,
         });
       });
@@ -550,8 +563,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -25%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(section, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(section, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
@@ -636,8 +649,8 @@ document.addEventListener("DOMContentLoaded", () => {
         trigger: card,
         start: "top 112%",
         end: "bottom -70%",
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
+        onLeave: () => resetAfterTrueLeave(card, 1, resetAfterDelay),
+        onLeaveBack: () => resetAfterTrueLeave(card, -1, resetAfterDelay),
         invalidateOnRefresh: true,
       });
     });
@@ -762,8 +775,8 @@ document.addEventListener("DOMContentLoaded", () => {
         trigger: card,
         start: "top 112%",
         end: "bottom -70%",
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
+        onLeave: () => resetAfterTrueLeave(card, 1, resetAfterDelay),
+        onLeaveBack: () => resetAfterTrueLeave(card, -1, resetAfterDelay),
         invalidateOnRefresh: true,
       });
     });
@@ -933,8 +946,8 @@ document.addEventListener("DOMContentLoaded", () => {
         trigger: card,
         start: "top 112%",
         end: "bottom -70%",
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
+        onLeave: () => resetAfterTrueLeave(card, 1, resetAfterDelay),
+        onLeaveBack: () => resetAfterTrueLeave(card, -1, resetAfterDelay),
         invalidateOnRefresh: true,
       });
     });
@@ -1020,8 +1033,8 @@ document.addEventListener("DOMContentLoaded", () => {
         end: "bottom -20%",
         onEnter: playIn,
         onEnterBack: playIn,
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
+        onLeave: () => resetAfterTrueLeave(card, 1, resetAfterDelay),
+        onLeaveBack: () => resetAfterTrueLeave(card, -1, resetAfterDelay),
         invalidateOnRefresh: true,
       });
     });
@@ -1218,8 +1231,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -35%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(section, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(section, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
@@ -1469,8 +1482,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -35%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(section, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(section, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
@@ -1546,8 +1559,8 @@ document.addEventListener("DOMContentLoaded", () => {
       end: "bottom -45%",
       onEnter: playIn,
       onEnterBack: playIn,
-      onLeave: resetAfterDelay,
-      onLeaveBack: resetAfterDelay,
+      onLeave: () => resetAfterTrueLeave(section, 1, resetAfterDelay),
+      onLeaveBack: () => resetAfterTrueLeave(section, -1, resetAfterDelay),
       invalidateOnRefresh: true,
     });
   };
