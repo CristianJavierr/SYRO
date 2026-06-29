@@ -1,12 +1,13 @@
 {
-  "name": "armory-framer-clone",
+  "name": "syro",
   "version": "1.0.0",
   "private": true,
-  "description": "Exact downloaded clone of https://armory.framer.ai/ with recovered, de-bundled, editable React source.",
+  "description": "SYRO Vite React landing page.",
   "type": "module",
   "scripts": {
-    "dev": "vite --root offline --port 5173",
-    "preview": "vite preview --root offline --port 4173",
+    "dev": "npm --prefix syro-clone run dev",
+    "build": "npm --prefix syro-clone run build",
+    "preview": "npm --prefix syro-clone run preview",
     "serve": "node serve-offline.mjs",
     "view-source": "vite --root src --port 5174"
   },
