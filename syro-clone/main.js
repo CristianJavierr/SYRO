@@ -1584,6 +1584,7 @@ document.addEventListener("DOMContentLoaded", () => {
       initProductFeaturesDescriptionAnimation();
       initPreviewFollower();
       window.ScrollTrigger?.refresh();
+      document.documentElement.classList.add("animations-ready");
     };
 
     if (document.fonts?.ready) {
