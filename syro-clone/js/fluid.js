@@ -832,12 +832,17 @@ let f = null;
 var logoImg = new Image();
 var logoSdf = null;
 var logoLoaded = false;
+const isFluidMobile =
+  window.matchMedia("(max-width: 768px)").matches ||
+  window.matchMedia("(pointer: coarse)").matches;
 
 // Scroll gravity integration
 var lastScrollY = window.scrollY;
 var scrollGravityY = 0;
 
 window.addEventListener("scroll", () => {
+  if (isFluidMobile) return;
+
   const currentScrollY = window.scrollY;
   const deltaY = currentScrollY - lastScrollY;
   lastScrollY = currentScrollY;
@@ -1047,9 +1052,6 @@ function setObstacle(x, y, reset) {
 // interaction -------------------------------------------------------
 
 var mouseDown = false;
-const isFluidMobile =
-  window.matchMedia("(max-width: 768px)").matches ||
-  window.matchMedia("(pointer: coarse)").matches;
 
 function startDrag(x, y) {
   let bounds = canvasEl.getBoundingClientRect();
@@ -1138,11 +1140,25 @@ document.addEventListener("keydown", (event) => {
 
 // on window resize, re-initialize scene locally
 let resizeTimeout;
+let lastLayoutWidth = containerWidth;
+let lastLayoutHeight = containerHeight;
 window.addEventListener("resize", () => {
+  const nextWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
+  const nextHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
+  const widthDelta = Math.abs(nextWidth - lastLayoutWidth);
+  const heightDelta = Math.abs(nextHeight - lastLayoutHeight);
+
+  if (isFluidMobile && widthDelta < 24 && heightDelta > 0) {
+    lastLayoutHeight = nextHeight;
+    return;
+  }
+
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
     containerWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
     containerHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
+    lastLayoutWidth = containerWidth;
+    lastLayoutHeight = containerHeight;
     GRID_SIZE = Math.max(
       Math.round(
         Math.sqrt(
@@ -1173,8 +1189,10 @@ window.addEventListener("resize", () => {
 
     setupScene();
     generateLogoSdf();
-    startDrag(containerWidth / 2, containerHeight * 0.54);
-    endDrag();
+    if (!isFluidMobile) {
+      startDrag(containerWidth / 2, containerHeight * 0.54);
+      endDrag();
+    }
   }, 250);
 });
 
@@ -1362,8 +1380,10 @@ function update() {
 
 setupScene();
 // draw obstacle in the middle
-startDrag(containerWidth / 2, containerHeight * 0.54);
-endDrag();
+if (!isFluidMobile) {
+  startDrag(containerWidth / 2, containerHeight * 0.54);
+  endDrag();
+}
 update();
 
 // Scroll activation IntersectionObserver
