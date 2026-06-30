@@ -873,45 +873,53 @@ function generateLogoSdf() {
     console.warn("Logo image not fully loaded yet.");
     return;
   }
+
+  if (!f) {
+    console.warn("Fluid simulation not initialized yet.");
+    return;
+  }
+
+  const gridX = f.fNumX;
+  const gridY = f.fNumY;
   
   const offscreen = document.createElement("canvas");
-  offscreen.width = X_RESOLUTION;
-  offscreen.height = Y_RESOLUTION;
+  offscreen.width = gridX;
+  offscreen.height = gridY;
   const oCtx = offscreen.getContext("2d");
 
-  oCtx.clearRect(0, 0, X_RESOLUTION, Y_RESOLUTION);
+  oCtx.clearRect(0, 0, gridX, gridY);
 
   // SVG aspect ratio (width=2889, height=1849)
   const logoAspect = 2889.0 / 1849.0;
   
-  const isMobile = window.matchMedia("(max-width: 768px)").matches || X_RESOLUTION < Y_RESOLUTION;
-  const scaleY = Y_RESOLUTION * (isMobile ? 0.24 : 0.45);
+  const isMobile = window.matchMedia("(max-width: 768px)").matches || gridX < gridY;
+  const scaleY = gridY * (isMobile ? 0.24 : 0.45);
   const scaleX = scaleY * logoAspect;
   
-  const dx = (X_RESOLUTION - scaleX) / 2;
-  const dy = (Y_RESOLUTION - scaleY) / 2;
+  const dx = (gridX - scaleX) / 2;
+  const dy = (gridY - scaleY) / 2;
 
   // Draw onto offscreen canvas, flipped horizontally to match the site composition.
   oCtx.save();
-  oCtx.translate(X_RESOLUTION, 0);
+  oCtx.translate(gridX, 0);
   oCtx.scale(-1, 1);
   oCtx.drawImage(logoImg, dx, dy, scaleX, scaleY);
   oCtx.restore();
 
-  const imgData = oCtx.getImageData(0, 0, X_RESOLUTION, Y_RESOLUTION);
+  const imgData = oCtx.getImageData(0, 0, gridX, gridY);
   const pixels = imgData.data;
 
   // Generate 2D Signed Distance Field (SDF) lookup grid
-  logoSdf = new Float32Array(X_RESOLUTION * Y_RESOLUTION * 3); // [distance, dirX, dirY]
+  logoSdf = new Float32Array(gridX * gridY * 3); // [distance, dirX, dirY]
 
   // We'll store the coordinates of the closest outside boundary pixel
-  const closestXGrid = new Int16Array(X_RESOLUTION * Y_RESOLUTION);
-  const closestYGrid = new Int16Array(X_RESOLUTION * Y_RESOLUTION);
+  const closestXGrid = new Int16Array(gridX * gridY);
+  const closestYGrid = new Int16Array(gridX * gridY);
 
   // Initialize grid states
-  for (let y = 0; y < Y_RESOLUTION; y++) {
-    for (let x = 0; x < X_RESOLUTION; x++) {
-      const idx = y * X_RESOLUTION + x;
+  for (let y = 0; y < gridY; y++) {
+    for (let x = 0; x < gridX; x++) {
+      const idx = y * gridX + x;
       const isInside = pixels[idx * 4 + 3] > 40; // check alpha channel
       
       if (!isInside) {
@@ -926,10 +934,10 @@ function generateLogoSdf() {
 
   // O(N) Distance transform helper
   const checkNeighbor = (x, y, nx, ny) => {
-    if (nx < 0 || nx >= X_RESOLUTION || ny < 0 || ny >= Y_RESOLUTION) return;
+    if (nx < 0 || nx >= gridX || ny < 0 || ny >= gridY) return;
     
-    const idx = y * X_RESOLUTION + x;
-    const nidx = ny * X_RESOLUTION + nx;
+    const idx = y * gridX + x;
+    const nidx = ny * gridX + nx;
     
     const ncx = closestXGrid[nidx];
     const ncy = closestYGrid[nidx];
@@ -953,8 +961,8 @@ function generateLogoSdf() {
   };
 
   // Pass 1: Forward Pass (top-left to bottom-right)
-  for (let y = 0; y < Y_RESOLUTION; y++) {
-    for (let x = 0; x < X_RESOLUTION; x++) {
+  for (let y = 0; y < gridY; y++) {
+    for (let x = 0; x < gridX; x++) {
       checkNeighbor(x, y, x - 1, y);     // Left
       checkNeighbor(x, y, x, y - 1);     // Top
       checkNeighbor(x, y, x - 1, y - 1); // Top-Left
@@ -963,8 +971,8 @@ function generateLogoSdf() {
   }
 
   // Pass 2: Backward Pass (bottom-right to top-left)
-  for (let y = Y_RESOLUTION - 1; y >= 0; y--) {
-    for (let x = X_RESOLUTION - 1; x >= 0; x--) {
+  for (let y = gridY - 1; y >= 0; y--) {
+    for (let x = gridX - 1; x >= 0; x--) {
       checkNeighbor(x, y, x + 1, y);     // Right
       checkNeighbor(x, y, x, y + 1);     // Bottom
       checkNeighbor(x, y, x + 1, y + 1); // Bottom-Right
@@ -973,9 +981,9 @@ function generateLogoSdf() {
   }
 
   // Populate the final logoSdf lookup array
-  for (let y = 0; y < Y_RESOLUTION; y++) {
-    for (let x = 0; x < X_RESOLUTION; x++) {
-      const idx = y * X_RESOLUTION + x;
+  for (let y = 0; y < gridY; y++) {
+    for (let x = 0; x < gridX; x++) {
+      const idx = y * gridX + x;
       const cx = closestXGrid[idx];
       const cy = closestYGrid[idx];
       
@@ -1396,7 +1404,7 @@ function update() {
 
         // Force a persistent outline character on the logo border so it remains visible
         if (logoLoaded && logoSdf) {
-          const sdfIdx = i * X_RESOLUTION + j;
+          const sdfIdx = i * f.fNumX + j;
           if (sdfIdx >= 0 && sdfIdx < logoSdf.length / 3) {
             const dist = logoSdf[sdfIdx * 3];
             if (dist > 0 && dist <= 1.4) {
