@@ -1321,8 +1321,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const xTo = window.gsap.quickTo(follower, 'x', { duration: 0.6, ease: 'power3' });
       const yTo = window.gsap.quickTo(follower, 'y', { duration: 0.6, ease: 'power3' });
 
+      let mouseX = 0;
+      let mouseY = 0;
       let isMouseInitialized = false;
+
       window.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
         if (!isMouseInitialized) {
           isMouseInitialized = true;
           window.gsap.set(follower, { xPercent: -50, yPercent: -50, x: e.clientX, y: e.clientY });
@@ -1335,110 +1340,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let prevSrc = null;
       let isFirst = true;
 
-      items.forEach((item, index) => {
-        item.addEventListener('mouseenter', (e) => {
-          if (index === activeIndex) return;
-
-          const loadIndex = index;
-
-          // Position follower instantly under mouse on enter to prevent opening at 0,0
-          if (e && typeof e.clientX === 'number') {
-            window.gsap.set(follower, { xPercent: -50, yPercent: -50, x: e.clientX, y: e.clientY });
-            xTo(e.clientX);
-            yTo(e.clientY);
-          }
-
-          const visual = item.querySelector('[data-follower-visual]');
-          const newSrc = visual ? visual.getAttribute('src') : '';
-          if (!newSrc) return;
-
-          // Determine animation reveal direction based on mouse vertical movement direction
-          let startClip = 'inset(0% 0% 100% 0%)'; // default
-          if (activeIndex !== null) {
-            const isMovingDown = index > activeIndex;
-            if (isMovingDown) {
-              startClip = 'inset(100% 0% 0% 0%)'; // bottom-to-top reveal when moving DOWN
-            } else {
-              startClip = 'inset(0% 0% 100% 0%)'; // top-to-bottom reveal when moving UP
-            }
-          }
-
-          activeIndex = index;
-
-          const runReveal = () => {
-            // Only reveal if the user is still hovering over this specific item
-            if (activeIndex !== loadIndex) return;
-
-            window.gsap.killTweensOf([currentImg, prevImg]);
-
-            if (isFirst) {
-              isFirst = false;
-              window.gsap.set(prevImg, { opacity: 0, zIndex: 1 });
-              window.gsap.set(currentImg, {
-                clipPath: startClip,
-                scale: 1.3,
-                zIndex: 2,
-              });
-
-              currentImg.src = newSrc;
-
-              const tl = window.gsap.timeline();
-              tl.to(currentImg, {
-                clipPath: 'inset(0% 0% 0% 0%)',
-                duration: 0.45,
-                ease: 'power2.out',
-              })
-              .to(currentImg, {
-                scale: 1,
-                duration: 0.7,
-                ease: 'power2.out',
-              }, 0);
-            } else {
-              if (prevSrc) {
-                prevImg.src = prevSrc;
-              }
-              window.gsap.set(prevImg, {
-                clipPath: 'inset(0% 0% 0% 0%)',
-                scale: 1,
-                opacity: 1,
-                zIndex: 1,
-              });
-
-              currentImg.src = newSrc;
-              window.gsap.set(currentImg, {
-                clipPath: startClip,
-                scale: 1.3,
-                zIndex: 2,
-              });
-
-              const tl = window.gsap.timeline();
-              tl.to(currentImg, {
-                clipPath: 'inset(0% 0% 0% 0%)',
-                duration: 0.45,
-                ease: 'power2.out',
-              })
-              .to(currentImg, {
-                scale: 1,
-                duration: 0.7,
-                ease: 'power2.out',
-              }, 0);
-            }
-
-            prevSrc = newSrc;
-          };
-
-          // Guard: Verify image is fully loaded/cached before revealing
-          const tempImg = new Image();
-          tempImg.src = newSrc;
-          if (tempImg.complete) {
-            runReveal();
-          } else {
-            tempImg.onload = runReveal;
-          }
-        });
-      });
-
-      collection.addEventListener('mouseleave', () => {
+      const hideFollower = () => {
         window.gsap.killTweensOf([currentImg, prevImg]);
         activeIndex = null;
 
@@ -1450,7 +1352,143 @@ document.addEventListener("DOMContentLoaded", () => {
             isFirst = true;
           },
         });
+      };
+
+      const triggerMouseEnter = (item, index, clientX, clientY) => {
+        if (index === activeIndex) return;
+
+        const loadIndex = index;
+
+        // Position follower instantly under mouse on enter to prevent opening at 0,0
+        if (typeof clientX === 'number') {
+          window.gsap.set(follower, { xPercent: -50, yPercent: -50, x: clientX, y: clientY });
+          xTo(clientX);
+          yTo(clientY);
+        }
+
+        const visual = item.querySelector('[data-follower-visual]');
+        const newSrc = visual ? visual.getAttribute('src') : '';
+        if (!newSrc) return;
+
+        // Determine animation reveal direction based on mouse vertical movement direction
+        let startClip = 'inset(0% 0% 100% 0%)'; // default
+        if (activeIndex !== null) {
+          const isMovingDown = index > activeIndex;
+          if (isMovingDown) {
+            startClip = 'inset(100% 0% 0% 0%)'; // bottom-to-top reveal when moving DOWN
+          } else {
+            startClip = 'inset(0% 0% 100% 0%)'; // top-to-bottom reveal when moving UP
+          }
+        }
+
+        activeIndex = index;
+
+        const runReveal = () => {
+          // Only reveal if the user is still hovering over this specific item
+          if (activeIndex !== loadIndex) return;
+
+          window.gsap.killTweensOf([currentImg, prevImg]);
+
+          if (isFirst) {
+            isFirst = false;
+            window.gsap.set(prevImg, { opacity: 0, zIndex: 1 });
+            window.gsap.set(currentImg, {
+              clipPath: startClip,
+              scale: 1.3,
+              zIndex: 2,
+            });
+
+            currentImg.src = newSrc;
+
+            const tl = window.gsap.timeline();
+            tl.to(currentImg, {
+              clipPath: 'inset(0% 0% 0% 0%)',
+              duration: 0.45,
+              ease: 'power2.out',
+            })
+            .to(currentImg, {
+              scale: 1,
+              duration: 0.7,
+              ease: 'power2.out',
+            }, 0);
+          } else {
+            if (prevSrc) {
+              prevImg.src = prevSrc;
+            }
+            window.gsap.set(prevImg, {
+              clipPath: 'inset(0% 0% 0% 0%)',
+              scale: 1,
+              opacity: 1,
+              zIndex: 1,
+            });
+
+            currentImg.src = newSrc;
+            window.gsap.set(currentImg, {
+              clipPath: startClip,
+              scale: 1.3,
+              zIndex: 2,
+            });
+
+            const tl = window.gsap.timeline();
+            tl.to(currentImg, {
+              clipPath: 'inset(0% 0% 0% 0%)',
+              duration: 0.45,
+              ease: 'power2.out',
+            })
+            .to(currentImg, {
+              scale: 1,
+              duration: 0.7,
+              ease: 'power2.out',
+            }, 0);
+          }
+
+          prevSrc = newSrc;
+        };
+
+        // Guard: Verify image is fully loaded/cached before revealing
+        const tempImg = new Image();
+        tempImg.src = newSrc;
+        if (tempImg.complete) {
+          runReveal();
+        } else {
+          tempImg.onload = runReveal;
+        }
+      };
+
+      items.forEach((item, index) => {
+        item.addEventListener('mouseenter', (e) => {
+          triggerMouseEnter(item, index, e.clientX, e.clientY);
+        });
       });
+
+      collection.addEventListener('mouseleave', () => {
+        hideFollower();
+      });
+
+      // Detect if the user scrolls the page (which moves items under a stationary pointer)
+      const checkMouseLeaveOnScroll = () => {
+        if (activeIndex === null) return;
+
+        const element = document.elementFromPoint(mouseX, mouseY);
+        if (!element) {
+          hideFollower();
+          return;
+        }
+
+        const item = element.closest('[data-follower-item]');
+        if (!item) {
+          hideFollower();
+        } else {
+          // If scroll shifted pointer onto a different item, switch active hover target
+          const itemsArray = Array.from(items);
+          const newIndex = itemsArray.indexOf(item);
+          if (newIndex !== -1 && newIndex !== activeIndex) {
+            triggerMouseEnter(item, newIndex, mouseX, mouseY);
+          }
+        }
+      };
+
+      window.addEventListener('scroll', checkMouseLeaveOnScroll, { passive: true });
     });
   };
 
