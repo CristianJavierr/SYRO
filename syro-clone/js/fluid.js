@@ -1521,10 +1521,28 @@ let hasSpedUp = false;
 }
 
 // Start loading custom SVG logo image
-logoImg.src = "./assets/image 63 (2).svg";
+let logoImgRetries = 0;
+const loadLogoImg = () => {
+  logoImg.src = logoImgRetries === 0
+    ? "./assets/image 63 (2).svg"
+    : `./assets/image 63 (2).svg?t=${Date.now()}`;
+};
+
 logoImg.onload = () => {
   generateLogoSdf();
 };
+
+logoImg.onerror = () => {
+  if (logoImgRetries < 3) {
+    logoImgRetries++;
+    console.warn(`[Logo Retry] Simulation SVG failed to load. Retrying in 1000ms... (attempt ${logoImgRetries})`);
+    setTimeout(loadLogoImg, 1000);
+  } else {
+    console.error("[Logo Retry] Simulation SVG failed to load after all retries.");
+  }
+};
+
+loadLogoImg();
 
 }
 

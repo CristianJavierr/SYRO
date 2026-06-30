@@ -1,6 +1,25 @@
 import React, { useEffect } from "react";
 import { pageHtml } from "./pageHtml";
 
+// Helper to retry dynamic script imports in case of network drops or 404s
+const importWithRetry = async (importFn, retries = 3, delay = 1000) => {
+  try {
+    return await importFn();
+  } catch (error) {
+    if (retries > 0) {
+      console.warn(`[Import Retry] Failed to load module. Retrying in ${delay}ms... (${retries} attempts left)`, error);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return importWithRetry(importFn, retries - 1, delay * 1.5);
+    } else {
+      console.error("[Import Retry] Ultimate failure. Force-reloading page to fetch latest asset hashes...", error);
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+      throw error;
+    }
+  }
+};
+
 if (typeof document !== "undefined") {
   document.documentElement.classList.add("js");
   document.body.classList.add("is-loading");
@@ -69,6 +88,13 @@ export default function App() {
       logo.decoding = "async";
       container.dataset.seedPending = "true";
 
+      let logoRetries = 0;
+      const loadLogo = () => {
+        logo.src = logoRetries === 0 
+          ? "./assets/image 63 (2).svg" 
+          : `./assets/image 63 (2).svg?t=${Date.now()}`;
+      };
+
       logo.onload = () => {
         delete container.dataset.seedPending;
 
@@ -114,10 +140,17 @@ export default function App() {
       };
 
       logo.onerror = () => {
-        delete container.dataset.seedPending;
+        if (logoRetries < 3) {
+          logoRetries++;
+          console.warn(`[Logo Retry] Initial SVG failed to load. Retrying in 1000ms... (attempt ${logoRetries})`);
+          setTimeout(loadLogo, 1000);
+        } else {
+          console.error("[Logo Retry] Initial SVG failed to load after all retries.");
+          delete container.dataset.seedPending;
+        }
       };
 
-      logo.src = "./assets/image 63 (2).svg";
+      loadLogo();
     };
 
     seedFluidInitialFrame();
@@ -130,10 +163,14 @@ export default function App() {
         document.body.classList.remove("is-loading", "entry-window", "entry-open");
       }, 9000);
 
-      await import("../main.js");
+      try {
+        await importWithRetry(() => import("../main.js"));
+      } catch (error) {
+        console.error("Main script failed to load:", error);
+      }
 
       try {
-        await import("../js/distort.js");
+        await importWithRetry(() => import("../js/distort.js"));
       } catch (error) {
         console.warn("Hero distortion script did not start", error);
       }
@@ -152,12 +189,11 @@ export default function App() {
 
       try {
         seedFluidInitialFrame();
-        const fluidModule = await import("../js/fluid.js");
+        const fluidModule = await importWithRetry(() => import("../js/fluid.js"));
         fluidModule.initSyroFluid?.();
       } catch (error) {
         console.warn("Fluid script did not start", error);
       }
-
     };
 
     startPageScripts();
