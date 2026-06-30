@@ -837,6 +837,11 @@ const isFluidMobile =
   window.matchMedia("(max-width: 768px)").matches ||
   window.matchMedia("(pointer: coarse)").matches;
 
+// Allow native vertical scrolling on mobile while JS handles horizontal gestures
+if (isFluidMobile && containerEl) {
+  containerEl.style.touchAction = "pan-y";
+}
+
 // Scroll gravity integration
 var lastScrollY = window.scrollY;
 var scrollGravityY = 0;
@@ -850,9 +855,9 @@ window.addEventListener("scroll", () => {
 
   // Make the scroll reaction extremely gentle and smooth
   // Clamp deltaY to a low limit to prevent violent jerks
-  const deltaLimit = isFluidMobile ? 8 : 35;
-  const impulse = isFluidMobile ? 0.14 : 1.0;
-  const gravityLimit = isFluidMobile ? 4 : 35;
+  const deltaLimit = isFluidMobile ? 4 : 35;
+  const impulse = isFluidMobile ? 0.06 : 1.0;
+  const gravityLimit = isFluidMobile ? 2 : 35;
   const clampedDelta = Math.max(-deltaLimit, Math.min(deltaLimit, deltaY));
   
   scrollGravityY += clampedDelta * impulse;
@@ -1084,6 +1089,7 @@ function endDrag() {
 }
 
 if (!isFluidMobile) {
+  // Desktop: full mouse + touch listeners
   containerEl.addEventListener("mousedown", (event) => {
     scene.obstacleRadius = 0.0;
     scene.dt = SPEED_1;
@@ -1122,6 +1128,65 @@ if (!isFluidMobile) {
       passive: false,
     }
   );
+}
+
+// Mobile: smart touch listeners that distinguish scroll from fluid interaction
+if (isFluidMobile) {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isTouchInteraction = false; // true = user is interacting with fluid, not scrolling
+  let touchDecided = false;       // true = we've committed to scroll or interact
+  const SCROLL_THRESHOLD = 12;    // px of movement before we decide
+
+  containerEl.addEventListener("touchstart", (event) => {
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    isTouchInteraction = false;
+    touchDecided = false;
+    // Do NOT preventDefault — let browser handle potential scroll
+  }, { passive: true });
+
+  containerEl.addEventListener("touchmove", (event) => {
+    const touch = event.touches[0];
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (!touchDecided) {
+      // Wait until the user has moved enough to decide
+      if (absDx > SCROLL_THRESHOLD || absDy > SCROLL_THRESHOLD) {
+        touchDecided = true;
+        // Predominantly horizontal = fluid interaction; vertical = scroll
+        isTouchInteraction = absDx > absDy;
+
+        if (isTouchInteraction) {
+          // Start the fluid drag from the current position
+          scene.obstacleRadius = 0.0;
+          scene.dt = SPEED_1;
+          startDrag(touch.clientX, touch.clientY);
+        }
+      }
+      return; // Still deciding, don't do anything yet
+    }
+
+    if (isTouchInteraction) {
+      // Feed coordinates to fluid simulation
+      event.preventDefault();
+      drag(touch.clientX, touch.clientY);
+    }
+    // If not isTouchInteraction, do nothing — browser handles native scroll
+  }, { passive: false });
+
+  containerEl.addEventListener("touchend", () => {
+    if (isTouchInteraction) {
+      scene.dt = SPEED_2;
+      endDrag();
+    }
+    isTouchInteraction = false;
+    touchDecided = false;
+  }, { passive: true });
 }
 
 document.addEventListener("keydown", (event) => {
@@ -1274,7 +1339,7 @@ const ctx = canvasEl.getContext("2d");
 
 function update() {
   // Decay scroll gravity smoothly towards 0
-  scrollGravityY *= 0.91;
+  scrollGravityY *= isFluidMobile ? 0.85 : 0.91;
   if (Math.abs(scrollGravityY) < 0.1) {
     scrollGravityY = 0;
   }
@@ -1382,37 +1447,33 @@ function update() {
 
 setupScene();
 // draw obstacle in the middle
-if (!isFluidMobile) {
-  startDrag(containerWidth / 2, containerHeight * 0.54);
-  endDrag();
-}
+startDrag(containerWidth / 2, containerHeight * 0.54);
+endDrag();
 update();
 
-// Scroll activation IntersectionObserver
+// Scroll activation IntersectionObserver (both desktop and mobile)
 let speedTimeout = null;
 let hasSpedUp = false;
-if (isFluidMobile) {
-  scene.paused = false;
-  scene.dt = SPEED_2;
-  hasSpedUp = true;
-} else {
+{
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         scene.paused = false;
         if (!hasSpedUp) {
-          scene.dt = SPEED_BASE; // Start slow only on first viewing
-          if (!speedTimeout) {
+          // Mobile: start fast immediately; Desktop: ramp up slowly
+          scene.dt = isFluidMobile ? SPEED_2 : SPEED_BASE;
+          if (!isFluidMobile && !speedTimeout) {
             speedTimeout = setTimeout(() => {
-              scene.dt = SPEED_2; // Auto transition to fast after 5s
-              hasSpedUp = true;   // Speed up has occurred, keep it fast permanently
+              scene.dt = SPEED_2;
+              hasSpedUp = true;
               speedTimeout = null;
             }, 5000);
+          } else if (isFluidMobile) {
+            hasSpedUp = true;
           }
         }
       } else {
         scene.paused = true;
-        // If we scroll away before 5 seconds have elapsed, pause the timer so it resumes when scrolling back
         if (!hasSpedUp && speedTimeout) {
           clearTimeout(speedTimeout);
           speedTimeout = null;
