@@ -10,6 +10,28 @@ export default function App() {
   useEffect(() => {
     document.body.classList.add("is-loading");
 
+    const runPerformanceBenchmark = () => {
+      const start = performance.now();
+      let val = 0;
+      // Run 500,000 mathematical iterations to measure CPU speed
+      for (let i = 0; i < 500000; i++) {
+        val += Math.sin(i) * Math.cos(i);
+      }
+      const duration = performance.now() - start;
+      console.log(`[Fluid Benchmark] Performance test took ${duration.toFixed(2)}ms`);
+
+      // Fast (<5ms): 1.0x, Medium (5ms-15ms): 1.25x (fewer cells), Slow (>15ms): 1.6x (even fewer cells)
+      let multiplier = 1.0;
+      if (duration > 15) {
+        multiplier = 1.6;
+      } else if (duration > 5) {
+        multiplier = 1.25;
+      }
+      window.fluidGridMultiplier = multiplier;
+    };
+
+    runPerformanceBenchmark();
+
     const seedFluidInitialFrame = () => {
       const container = document.getElementById("fluid-container");
       const render = container?.querySelector(".render");
@@ -24,7 +46,10 @@ export default function App() {
         return;
       }
 
-      const targetLongSide = 128 * 74;
+      const baseTarget = 128 * 74;
+      const perfMultiplier = window.fluidGridMultiplier || 1.0;
+      const targetLongSide = baseTarget / (perfMultiplier * perfMultiplier);
+
       const minGridSize = 8;
       const cellCropX = 1;
       const cellCropY = 2;

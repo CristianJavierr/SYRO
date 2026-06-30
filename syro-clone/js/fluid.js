@@ -26,10 +26,16 @@ if (!containerProbe || !containerProbe.querySelector("canvas") || !containerProb
 window.__syroFluidStarted = true;
 console.log("SYRO fluid initialized");
 
-const TARGET_LONG_SIDE = 128 * 74;
-const MIN_GRID_SIZE = 8;
-const CELL_CROP_X = 1;
-const CELL_CROP_Y = 2;
+  const isFluidMobile =
+    window.matchMedia("(max-width: 768px)").matches ||
+    window.matchMedia("(pointer: coarse)").matches;
+
+  const perfMultiplier = window.fluidGridMultiplier || 1.0;
+  const baseTarget = isFluidMobile ? 128 * 40 : 128 * 74;
+  const TARGET_LONG_SIDE = baseTarget / (perfMultiplier * perfMultiplier);
+  const MIN_GRID_SIZE = 8;
+  const CELL_CROP_X = 1;
+  const CELL_CROP_Y = 2;
 
 const BASE = [
   // ["@", 42996],
@@ -833,9 +839,7 @@ let f = null;
 var logoImg = new Image();
 var logoSdf = null;
 var logoLoaded = false;
-const isFluidMobile =
-  window.matchMedia("(max-width: 768px)").matches ||
-  window.matchMedia("(pointer: coarse)").matches;
+  // isFluidMobile is declared at the top of initSyroFluid
 
 // Allow native vertical scrolling on mobile while JS handles horizontal gestures
 if (isFluidMobile && containerEl) {
