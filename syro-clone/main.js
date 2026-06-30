@@ -1285,6 +1285,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!collection || !follower || !followerInner) return;
 
+      // Preload images to cache them early
+      items.forEach(item => {
+        const visual = item.querySelector('[data-follower-visual]');
+        const src = visual ? visual.getAttribute('src') : '';
+        if (src) {
+          const img = new Image();
+          img.src = src;
+        }
+      });
+
       // Dynamically initialize dual image structure for transitions
       followerInner.innerHTML = `
         <img class="marcas-img marcas-img--prev" src="" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;" />
@@ -1302,11 +1312,7 @@ document.addEventListener("DOMContentLoaded", () => {
       window.addEventListener('mousemove', e => {
         if (!isMouseInitialized) {
           isMouseInitialized = true;
-          window.gsap.set(follower, { x: e.clientX, y: e.clientY });
-          xTo(e.clientX);
-          yTo(e.clientY);
-          if (xTo.tween) xTo.tween.progress(1);
-          if (yTo.tween) yTo.tween.progress(1);
+          window.gsap.set(follower, { xPercent: -50, yPercent: -50, x: e.clientX, y: e.clientY });
         }
         xTo(e.clientX);
         yTo(e.clientY);
@@ -1320,13 +1326,13 @@ document.addEventListener("DOMContentLoaded", () => {
         item.addEventListener('mouseenter', (e) => {
           if (index === activeIndex) return;
 
+          const loadIndex = index;
+
           // Position follower instantly under mouse on enter to prevent opening at 0,0
           if (e && typeof e.clientX === 'number') {
-            window.gsap.set(follower, { x: e.clientX, y: e.clientY });
+            window.gsap.set(follower, { xPercent: -50, yPercent: -50, x: e.clientX, y: e.clientY });
             xTo(e.clientX);
             yTo(e.clientY);
-            if (xTo.tween) xTo.tween.progress(1);
-            if (yTo.tween) yTo.tween.progress(1);
           }
 
           const visual = item.querySelector('[data-follower-visual]');
@@ -1346,62 +1352,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
           activeIndex = index;
 
-          window.gsap.killTweensOf([currentImg, prevImg]);
+          const runReveal = () => {
+            // Only reveal if the user is still hovering over this specific item
+            if (activeIndex !== loadIndex) return;
 
-          if (isFirst) {
-            isFirst = false;
-            window.gsap.set(prevImg, { opacity: 0, zIndex: 1 });
-            window.gsap.set(currentImg, {
-              clipPath: startClip,
-              scale: 1.3,
-              zIndex: 2,
-            });
+            window.gsap.killTweensOf([currentImg, prevImg]);
 
-            currentImg.src = newSrc;
+            if (isFirst) {
+              isFirst = false;
+              window.gsap.set(prevImg, { opacity: 0, zIndex: 1 });
+              window.gsap.set(currentImg, {
+                clipPath: startClip,
+                scale: 1.3,
+                zIndex: 2,
+              });
 
-            const tl = window.gsap.timeline();
-            tl.to(currentImg, {
-              clipPath: 'inset(0% 0% 0% 0%)',
-              duration: 0.45,
-              ease: 'power2.out',
-            })
-            .to(currentImg, {
-              scale: 1,
-              duration: 0.7,
-              ease: 'power2.out',
-            }, 0);
-          } else {
-            if (prevSrc) {
-              prevImg.src = prevSrc;
+              currentImg.src = newSrc;
+
+              const tl = window.gsap.timeline();
+              tl.to(currentImg, {
+                clipPath: 'inset(0% 0% 0% 0%)',
+                duration: 0.45,
+                ease: 'power2.out',
+              })
+              .to(currentImg, {
+                scale: 1,
+                duration: 0.7,
+                ease: 'power2.out',
+              }, 0);
+            } else {
+              if (prevSrc) {
+                prevImg.src = prevSrc;
+              }
+              window.gsap.set(prevImg, {
+                clipPath: 'inset(0% 0% 0% 0%)',
+                scale: 1,
+                opacity: 1,
+                zIndex: 1,
+              });
+
+              currentImg.src = newSrc;
+              window.gsap.set(currentImg, {
+                clipPath: startClip,
+                scale: 1.3,
+                zIndex: 2,
+              });
+
+              const tl = window.gsap.timeline();
+              tl.to(currentImg, {
+                clipPath: 'inset(0% 0% 0% 0%)',
+                duration: 0.45,
+                ease: 'power2.out',
+              })
+              .to(currentImg, {
+                scale: 1,
+                duration: 0.7,
+                ease: 'power2.out',
+              }, 0);
             }
-            window.gsap.set(prevImg, {
-              clipPath: 'inset(0% 0% 0% 0%)',
-              scale: 1,
-              opacity: 1,
-              zIndex: 1,
-            });
 
-            currentImg.src = newSrc;
-            window.gsap.set(currentImg, {
-              clipPath: startClip,
-              scale: 1.3,
-              zIndex: 2,
-            });
+            prevSrc = newSrc;
+          };
 
-            const tl = window.gsap.timeline();
-            tl.to(currentImg, {
-              clipPath: 'inset(0% 0% 0% 0%)',
-              duration: 0.45,
-              ease: 'power2.out',
-            })
-            .to(currentImg, {
-              scale: 1,
-              duration: 0.7,
-              ease: 'power2.out',
-            }, 0);
+          // Guard: Verify image is fully loaded/cached before revealing
+          const tempImg = new Image();
+          tempImg.src = newSrc;
+          if (tempImg.complete) {
+            runReveal();
+          } else {
+            tempImg.onload = runReveal;
           }
-
-          prevSrc = newSrc;
         });
       });
 
