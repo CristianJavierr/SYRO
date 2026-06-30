@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .to(lines, { yPercent: 0, duration: 1, ease: "power3.out", stagger: 0.16, overwrite: true }, 0.08);
     };
 
-    createScrollReveal({ trigger: description, endTrigger: section, onEnter: playIn, onHide: setHidden, start: "top bottom+=60", end: "bottom -20%" });
+    createScrollReveal({ trigger: description, endTrigger: section, onEnter: playIn, onHide: setHidden, start: "top bottom", end: "bottom -20%" });
   };
 
   const initProductsDescriptionAnimation = () => {
