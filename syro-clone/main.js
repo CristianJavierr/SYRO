@@ -104,74 +104,86 @@ document.addEventListener("DOMContentLoaded", () => {
       onLeaveBack: hide,
       invalidateOnRefresh: true,
     });
+
+    window.requestAnimationFrame(() => {
+      if (window.ScrollTrigger.isInViewport?.(trigger, 0)) {
+        show();
+      }
+    });
   };
 
   const initIntegrationsDescriptionAnimation = () => {
     const description = document.querySelector(".integrations-description");
-    const section = document.querySelector(".integrations");
+    const masks = window.gsap?.utils?.toArray(".integrations-description-line-mask") ?? [];
     const lines = window.gsap?.utils?.toArray(".integrations-description-line") ?? [];
     const hasGSAP = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
 
-    if (!description || !section || !lines.length || !hasGSAP) return;
+    if (!description || !masks.length || !lines.length || !hasGSAP) return;
 
     window.gsap.registerPlugin(window.ScrollTrigger);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      window.gsap.set([description, ...lines], { y: 0, yPercent: 0, opacity: 1 });
+      window.gsap.set([description, ...masks, ...lines], { y: 0, yPercent: 0, opacity: 1 });
       return;
     }
 
-    const targets = [description, ...lines];
+    const targets = [description, ...masks, ...lines];
 
     const setHidden = () => {
       window.gsap.killTweensOf(targets);
-      window.gsap.set(description, { y: 34, opacity: 0 });
+      window.gsap.set(description, { opacity: 0 });
+      window.gsap.set(masks, { y: 34 });
       window.gsap.set(lines, { yPercent: 110 });
     };
 
     const playIn = () => {
       window.gsap.killTweensOf(targets);
-      window.gsap.set(description, { y: 34, opacity: 0 });
+      window.gsap.set(description, { opacity: 0 });
+      window.gsap.set(masks, { y: 34 });
       window.gsap.set(lines, { yPercent: 110 });
       window.gsap.timeline()
-        .to(description, { y: 0, opacity: 1, duration: 1.14, ease: "power3.out" }, 0)
+        .to(description, { opacity: 1, duration: 1.14, ease: "power3.out" }, 0)
+        .to(masks, { y: 0, duration: 1.14, ease: "power3.out", overwrite: true }, 0)
         .to(lines, { yPercent: 0, duration: 1, ease: "power3.out", stagger: 0.16, overwrite: true }, 0.08);
     };
 
-    createScrollReveal({ trigger: description, endTrigger: section, onEnter: playIn, onHide: setHidden, start: "top bottom", end: "bottom -20%" });
+    createScrollReveal({ trigger: description, onEnter: playIn, onHide: setHidden, start: "top bottom", end: "bottom top" });
   };
 
   const initProductsDescriptionAnimation = () => {
     const description = document.querySelector(".case-studies-intro__description");
-    const section = document.querySelector(".case-studies-intro");
+    const masks = window.gsap?.utils?.toArray(".products-description-line-mask") ?? [];
     const lines = window.gsap?.utils?.toArray(".products-description-line") ?? [];
     const hasGSAP = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
 
-    if (!description || !section || !lines.length || !hasGSAP) return;
+    if (!description || !masks.length || !lines.length || !hasGSAP) return;
 
     window.gsap.registerPlugin(window.ScrollTrigger);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      window.gsap.set([description, ...lines], { y: 0 });
+      window.gsap.set([description, ...masks, ...lines], { y: 0, yPercent: 0, opacity: 1 });
       return;
     }
 
-    const targets = [description, ...lines];
+    const targets = [description, ...masks, ...lines];
 
     const setHidden = () => {
       window.gsap.killTweensOf(targets);
-      window.gsap.set(description, { y: 34, opacity: 0 });
+      window.gsap.set(description, { opacity: 0 });
+      window.gsap.set(masks, { y: 34 });
       window.gsap.set(lines, { yPercent: 110 });
     };
 
     const playIn = () => {
       window.gsap.killTweensOf(targets);
-      window.gsap.set(description, { y: 34, opacity: 0 });
+      window.gsap.set(description, { opacity: 0 });
+      window.gsap.set(masks, { y: 34 });
       window.gsap.set(lines, { yPercent: 110 });
       window.gsap.timeline()
-        .to(description, { y: 0, opacity: 1, duration: 0.95, ease: "power3.out" }, 0)
+        .to(description, { opacity: 1, duration: 0.95, ease: "power3.out" }, 0)
+        .to(masks, { y: 0, duration: 0.95, ease: "power3.out", overwrite: true }, 0)
         .to(lines, { yPercent: 0, duration: 0.86, ease: "power3.out", stagger: 0.12, overwrite: true }, 0.08);
     };
 
-    createScrollReveal({ trigger: description, endTrigger: section, onEnter: playIn, onHide: setHidden, start: "top bottom+=60", end: "bottom -20%" });
+    createScrollReveal({ trigger: description, onEnter: playIn, onHide: setHidden, start: "top bottom", end: "bottom top" });
   };
 
   const splitHeroTitle = () => {
@@ -239,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const initProductsTitleAnimation = () => {
     const title = document.querySelector(".case-studies-intro__title");
     const section = document.querySelector(".case-studies-intro");
-    const chars = window.gsap?.utils?.toArray(".products-title-char") ?? [];
+    const chars = title ? window.gsap?.utils?.toArray(title.querySelectorAll(".products-title-char")) : [];
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const hasGSAP = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
 
@@ -282,11 +294,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createScrollReveal({
       trigger: title,
-      endTrigger: section,
       onEnter: playIn,
       onHide: setHidden,
-      start: "top bottom+=60",
-      end: "bottom -20%",
+      start: "top bottom",
+      end: "bottom top",
     });
   };
 
@@ -388,27 +399,33 @@ document.addEventListener("DOMContentLoaded", () => {
       const title = card.querySelector(".service-title");
       const desc = card.querySelector(".service-desc");
       const content = card.querySelector(".service-content");
+      const illustration = card.querySelector(".service-illustration");
+      const paths = window.gsap.utils.toArray(card.querySelectorAll(".illustration-container path"));
       const titleChars = title ? window.gsap.utils.toArray(title.querySelectorAll(".products-title-char")) : [];
+      const descMasks = desc ? window.gsap.utils.toArray(desc.querySelectorAll(".service-desc-line-mask")) : [];
       const descLines = desc ? window.gsap.utils.toArray(desc.querySelectorAll(".service-desc-line")) : [];
-      return { title, desc, content, titleChars, descLines };
+
+      return { title, desc, content, illustration, paths, titleChars, descMasks, descLines };
     });
 
-    const hasElements = cardData.some(c => c.titleChars.length || c.descLines.length);
+    const hasElements = cardData.some(c => c.titleChars.length || c.descLines.length || c.paths.length);
     if (!hasElements) return;
 
     if (reduceMotion) {
       cardData.forEach(c => {
+        if (c.title) window.gsap.set(c.title, { opacity: 1 });
         if (c.titleChars.length) window.gsap.set(c.titleChars, { y: "0em", rotate: 0 });
-        if (c.descLines.length) window.gsap.set([c.desc, ...c.descLines], { y: 0, yPercent: 0, opacity: 1 });
+        if (c.descLines.length) window.gsap.set([c.desc, ...c.descMasks, ...c.descLines], { y: 0, yPercent: 0, opacity: 1 });
+        if (c.paths.length) window.gsap.set(c.paths, { opacity: 1, strokeDashoffset: 0 });
       });
       return;
     }
 
-    const setCardHidden = (c) => {
-      c.resetCall?.kill();
-
+    const setTextHidden = (c) => {
+      c.textTimeline?.kill();
       if (c.titleChars.length) {
-        window.gsap.killTweensOf(c.titleChars);
+        window.gsap.killTweensOf([c.title, ...c.titleChars]);
+        window.gsap.set(c.title, { opacity: 0 });
         window.gsap.set(c.titleChars, {
           y: "100%",
           rotate: 0,
@@ -416,21 +433,38 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
       if (c.descLines.length) {
-        window.gsap.killTweensOf([c.desc, ...c.descLines]);
-        window.gsap.set(c.desc, { y: 24, opacity: 0 });
+        window.gsap.killTweensOf([c.desc, ...c.descMasks, ...c.descLines]);
+        window.gsap.set(c.desc, { opacity: 0 });
+        window.gsap.set(c.descMasks, { y: 24 });
         window.gsap.set(c.descLines, { yPercent: 110 });
       }
     };
 
-    const setHidden = () => {
-      cardData.forEach(setCardHidden);
+    const shouldReplaySvg = () => window.matchMedia("(max-width: 767px)").matches;
+
+    const setSvgHidden = (c) => {
+      c.svgDelayCall?.kill();
+      c.svgDelayCall = null;
+      if (shouldReplaySvg()) {
+        c.hasDrawnSvg = false;
+      }
+      if ((!c.hasDrawnSvg || shouldReplaySvg()) && c.illustration) {
+        c.illustration.classList.remove("is-drawing");
+      }
     };
 
-    const setCardReady = (c) => {
-      c.resetCall?.kill();
+    const setHidden = () => {
+      cardData.forEach((c) => {
+        setTextHidden(c);
+        setSvgHidden(c);
+      });
+    };
 
+    const setTextReady = (c) => {
+      c.textTimeline?.kill();
       if (c.titleChars.length) {
-        window.gsap.killTweensOf(c.titleChars);
+        window.gsap.killTweensOf([c.title, ...c.titleChars]);
+        window.gsap.set(c.title, { opacity: 0 });
         window.gsap.set(c.titleChars, {
           y: "1.3em",
           rotate: 10,
@@ -438,34 +472,59 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
       if (c.descLines.length) {
-        window.gsap.killTweensOf([c.desc, ...c.descLines]);
-        window.gsap.set(c.desc, { y: 24, opacity: 0 });
+        window.gsap.killTweensOf([c.desc, ...c.descMasks, ...c.descLines]);
+        window.gsap.set(c.desc, { opacity: 0 });
+        window.gsap.set(c.descMasks, { y: 24 });
         window.gsap.set(c.descLines, { yPercent: 110 });
       }
     };
 
-    const animateCard = (c, delay = 0) => {
-      setCardReady(c);
+    const animateSvg = (c, delay = 0) => {
+      if (!c.illustration || !c.paths.length || (!shouldReplaySvg() && c.hasDrawnSvg)) return;
+      setSvgHidden(c);
 
+      c.svgDelayCall = window.gsap.delayedCall(delay, () => {
+        c.hasDrawnSvg = true;
+        c.svgDelayCall = null;
+        c.illustration.classList.remove("is-drawing");
+        c.illustration.offsetWidth;
+        c.illustration.classList.add("is-drawing");
+      });
+    };
+
+    const animateText = (c, delay = 0) => {
+      setTextReady(c);
       const tl = window.gsap.timeline({ delay });
+      c.textTimeline = tl;
 
       if (c.titleChars.length) {
-        tl.to(c.titleChars, {
+        tl.to(c.title, {
+          opacity: 1,
+          duration: 0.2,
+          ease: "power2.out",
+          overwrite: true,
+        }, 0.08)
+        .to(c.titleChars, {
           y: "0em",
           rotate: 0,
           duration: 0.55,
           ease: "power3.out",
           stagger: 0.02,
           overwrite: true,
-        }, 0);
+        }, 0.08);
       }
 
       if (c.descLines.length) {
         tl.to(c.desc, {
-          y: 0,
           opacity: 1,
           duration: 0.6,
           ease: "power3.out",
+        }, 0.15)
+        .to(c.descMasks, {
+          y: 0,
+          duration: 0.6,
+          ease: "power3.out",
+          overwrite: true,
         }, 0.15)
         .to(c.descLines, {
           yPercent: 0,
@@ -477,20 +536,29 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
-    const resetCardAfterDelay = (c) => {
-      c.resetCall?.kill();
-      c.resetCall = window.gsap.delayedCall(0.1, () => setCardHidden(c));
-    };
-
     setHidden();
 
-    cardData.forEach((c) => {
-      const textTrigger = c.content || c.title || section;
+    const desktopSeries = window.matchMedia("(min-width: 768px)");
+
+    cardData.forEach((c, index) => {
+      const delay = desktopSeries.matches ? index * 0.16 : 0;
+      const textTrigger = c.content || c.desc || c.title || section;
+      const svgTrigger = c.illustration || section;
+
       createScrollReveal({
         trigger: textTrigger,
         endTrigger: textTrigger,
-        onEnter: () => animateCard(c),
-        onHide: () => resetCardAfterDelay(c),
+        onEnter: () => animateText(c, delay),
+        onHide: () => setTextHidden(c),
+        start: "top bottom",
+        end: "bottom top",
+      });
+
+      createScrollReveal({
+        trigger: svgTrigger,
+        endTrigger: svgTrigger,
+        onEnter: () => animateSvg(c),
+        onHide: () => setSvgHidden(c),
         start: "top bottom",
         end: "bottom top",
       });
@@ -520,33 +588,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
     cards.forEach((card) => {
       const description = card.querySelector(".case-study__description");
+      const masks = window.gsap.utils.toArray(card.querySelectorAll(".case-study-description-line-mask"));
       const lines = window.gsap.utils.toArray(card.querySelectorAll(".case-study-description-line"));
-      let resetCall;
 
-      if (!description || !lines.length) {
+      if (!description || !masks.length || !lines.length) {
         return;
       }
 
       if (reduceMotion) {
-        window.gsap.set([description, ...lines], { y: 0, yPercent: 0 });
+        window.gsap.set([description, ...masks, ...lines], { y: 0, yPercent: 0, opacity: 1 });
         return;
       }
 
+      const targets = [description, ...masks, ...lines];
+
       const setHidden = () => {
-        window.gsap.killTweensOf([description, ...lines]);
-        window.gsap.set(description, { y: 24 });
+        window.gsap.killTweensOf(targets);
+        window.gsap.set(description, { opacity: 0 });
+        window.gsap.set(masks, { y: 24 });
         window.gsap.set(lines, { yPercent: 110 });
       };
 
       const playIn = () => {
-        resetCall?.kill();
-        window.gsap.killTweensOf([description, ...lines]);
+        window.gsap.killTweensOf(targets);
+        window.gsap.set(description, { opacity: 0 });
+        window.gsap.set(masks, { y: 24 });
+        window.gsap.set(lines, { yPercent: 110 });
 
         window.gsap.timeline()
           .to(description, {
+            opacity: 1,
+            duration: 0.82,
+            ease: "power3.out",
+          }, 0)
+          .to(masks, {
             y: 0,
             duration: 0.82,
             ease: "power3.out",
+            overwrite: true,
           }, 0)
           .to(lines, {
             yPercent: 0,
@@ -557,29 +636,14 @@ document.addEventListener("DOMContentLoaded", () => {
           }, 0.06);
       };
 
-      const resetAfterDelay = () => {
-        resetCall?.kill();
-        resetCall = window.gsap.delayedCall(0.1, setHidden);
-      };
-
       setHidden();
 
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 86%",
-        end: "bottom -20%",
+      createScrollReveal({
+        trigger: description,
         onEnter: playIn,
-        onEnterBack: playIn,
-        invalidateOnRefresh: true,
-      });
-
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 112%",
-        end: "bottom -70%",
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
-        invalidateOnRefresh: true,
+        onHide: setHidden,
+        start: "top bottom",
+        end: "bottom top",
       });
     });
   };
@@ -646,32 +710,32 @@ document.addEventListener("DOMContentLoaded", () => {
     cards.forEach((card) => {
       const mask = card.querySelector(".case-study-logo-mask");
       const logo = card.querySelector(".case-study__logo");
-      let resetCall;
 
       if (!mask || !logo) {
         return;
       }
 
       if (reduceMotion) {
-        window.gsap.set([mask, logo], { y: 0, yPercent: 0 });
+        window.gsap.set([mask, logo], { y: 0, yPercent: 0, opacity: 1 });
         return;
       }
 
+      const targets = [mask, logo];
+
       const setHidden = () => {
-        window.gsap.killTweensOf([mask, logo]);
-        window.gsap.set(mask, { y: 24 });
+        window.gsap.killTweensOf(targets);
+        window.gsap.set(mask, { y: 0, opacity: 0 });
         window.gsap.set(logo, { yPercent: 112 });
       };
 
       const playIn = () => {
-        resetCall?.kill();
-        window.gsap.killTweensOf([mask, logo]);
-        window.gsap.set(mask, { y: 24 });
+        window.gsap.killTweensOf(targets);
+        window.gsap.set(mask, { y: 0, opacity: 0 });
         window.gsap.set(logo, { yPercent: 112 });
 
         window.gsap.timeline()
           .to(mask, {
-            y: 0,
+            opacity: 1,
             duration: 0.82,
             ease: "power3.out",
           }, 0)
@@ -683,29 +747,14 @@ document.addEventListener("DOMContentLoaded", () => {
           }, 0.06);
       };
 
-      const resetAfterDelay = () => {
-        resetCall?.kill();
-        resetCall = window.gsap.delayedCall(0.1, setHidden);
-      };
-
       setHidden();
 
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 86%",
-        end: "bottom -20%",
+      createScrollReveal({
+        trigger: mask,
         onEnter: playIn,
-        onEnterBack: playIn,
-        invalidateOnRefresh: true,
-      });
-
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 112%",
-        end: "bottom -70%",
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
-        invalidateOnRefresh: true,
+        onHide: setHidden,
+        start: "top bottom",
+        end: "bottom top",
       });
     });
   };
@@ -786,12 +835,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     cards.forEach((card) => {
       const chars = window.gsap.utils.toArray(card.querySelectorAll(".syro-pos-title-char"));
+      const title = card.querySelector(".case-study__title");
       const center = (chars.length - 1) / 2;
       const maxDistance = Math.max(center, 1);
-      let resetCall;
       let activeTweens = [];
 
-      if (!chars.length) {
+      if (!title || !chars.length) {
         return;
       }
 
@@ -821,7 +870,6 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       const playIn = () => {
-        resetCall?.kill();
         activeTweens.forEach((tween) => tween.kill());
         activeTweens = [];
         window.gsap.killTweensOf(chars);
@@ -854,29 +902,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       };
 
-      const resetAfterDelay = () => {
-        resetCall?.kill();
-        resetCall = window.gsap.delayedCall(0.1, setHidden);
-      };
-
       setHidden();
 
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 86%",
-        end: "bottom -20%",
+      createScrollReveal({
+        trigger: title,
         onEnter: playIn,
-        onEnterBack: playIn,
-        invalidateOnRefresh: true,
-      });
-
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 112%",
-        end: "bottom -70%",
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
-        invalidateOnRefresh: true,
+        onHide: setHidden,
+        start: "top bottom",
+        end: "bottom top",
       });
     });
   };
@@ -905,12 +938,10 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     years.forEach((year) => {
-      const card = year.closest(".case-study");
       const text = year.textContent.trim();
-      let resetCall;
       let activeTween;
 
-      if (!card || !text) {
+      if (!text) {
         return;
       }
 
@@ -929,7 +960,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const playIn = () => {
         const state = { progress: 0 };
 
-        resetCall?.kill();
         activeTween?.kill();
         window.gsap.killTweensOf(year);
         setHidden();
@@ -948,22 +978,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       };
 
-      const resetAfterDelay = () => {
-        resetCall?.kill();
-        resetCall = window.gsap.delayedCall(0.1, setHidden);
-      };
-
       setHidden();
 
-      window.ScrollTrigger.create({
-        trigger: card,
-        start: "top 88%",
-        end: "bottom -20%",
+      createScrollReveal({
+        trigger: year,
         onEnter: playIn,
-        onEnterBack: playIn,
-        onLeave: resetAfterDelay,
-        onLeaveBack: resetAfterDelay,
-        invalidateOnRefresh: true,
+        onHide: setHidden,
+        start: "top bottom",
+        end: "bottom top",
       });
     });
   };
@@ -1146,11 +1168,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createScrollReveal({
       trigger: title,
-      endTrigger: section,
       onEnter: playIn,
       onHide: setHidden,
-      start: "top bottom+=60",
-      end: "bottom -20%",
+      start: "top bottom",
+      end: "bottom top",
     });
   };
 
@@ -1386,11 +1407,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createScrollReveal({
       trigger: title,
-      endTrigger: section,
       onEnter: playIn,
       onHide: setHidden,
-      start: "top bottom+=60",
-      end: "bottom -20%",
+      start: "top bottom",
+      end: "bottom top",
+    });
+  };
+
+  const initPlatformIntegrationLogoAnimations = () => {
+    const allLogos = window.gsap?.utils?.toArray(".platform-integration-logo") ?? [];
+    const logos = allLogos.slice(0, 3);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hasGSAP = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
+
+    if (!allLogos.length || !hasGSAP) return;
+
+    window.gsap.registerPlugin(window.ScrollTrigger);
+    allLogos.slice(3).forEach((logo) => {
+      const img = logo.querySelector("img");
+      logo.setAttribute("aria-hidden", "true");
+      if (img) window.gsap.set(img, { opacity: 0, yPercent: 0, scale: 1 });
+    });
+
+    logos.forEach((logo, index) => {
+      const img = logo.querySelector("img");
+
+      if (!img) return;
+
+      if (reduceMotion) {
+        window.gsap.set(img, { opacity: 1, yPercent: 0, scale: 1 });
+        return;
+      }
+
+      const setHidden = () => {
+        window.gsap.killTweensOf(img);
+        window.gsap.set(img, { opacity: 0, yPercent: 34, scale: 0.94 });
+      };
+
+      const playIn = () => {
+        const delay = window.matchMedia("(min-width: 768px)").matches ? (index % 4) * 0.045 : 0;
+
+        window.gsap.killTweensOf(img);
+        window.gsap.set(img, { opacity: 0, yPercent: 34, scale: 0.94 });
+        window.gsap.to(img, {
+          opacity: 1,
+          yPercent: 0,
+          scale: 1,
+          duration: 0.72,
+          delay,
+          ease: "power3.out",
+          overwrite: true,
+        });
+      };
+
+      setHidden();
+
+      createScrollReveal({
+        trigger: logo,
+        onEnter: playIn,
+        onHide: setHidden,
+        start: "top bottom",
+        end: "bottom top",
+      });
     });
   };
 
@@ -1407,37 +1485,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const initProductFeaturesDescriptionAnimation = () => {
     const description = document.querySelector(".product-features-intro__description");
-    const section = document.querySelector(".product-features-intro");
+    const masks = window.gsap?.utils?.toArray(".product-features-description-line-mask") ?? [];
     const lines = window.gsap?.utils?.toArray(".product-features-description-line") ?? [];
     const hasGSAP = typeof window.gsap !== "undefined" && typeof window.ScrollTrigger !== "undefined";
 
-    if (!description || !section || !lines.length || !hasGSAP) return;
+    if (!description || !masks.length || !lines.length || !hasGSAP) return;
 
     window.gsap.registerPlugin(window.ScrollTrigger);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      window.gsap.set([description, ...lines], { y: 0 });
+      window.gsap.set([description, ...masks, ...lines], { y: 0, yPercent: 0, opacity: 1 });
       return;
     }
 
-    const targets = [description, ...lines];
+    const targets = [description, ...masks, ...lines];
 
     const setHidden = () => {
       window.gsap.killTweensOf(targets);
-      window.gsap.set(description, { y: 34, opacity: 0 });
+      window.gsap.set(description, { opacity: 0 });
+      window.gsap.set(masks, { y: 34 });
       window.gsap.set(lines, { yPercent: 110 });
     };
 
     const playIn = () => {
       window.gsap.killTweensOf(targets);
-      window.gsap.set(description, { y: 34, opacity: 0 });
+      window.gsap.set(description, { opacity: 0 });
+      window.gsap.set(masks, { y: 34 });
       window.gsap.set(lines, { yPercent: 110 });
 
       window.gsap.timeline()
-        .to(description, { y: 0, opacity: 1, duration: 0.95, ease: "power3.out" }, 0)
+        .to(description, { opacity: 1, duration: 0.95, ease: "power3.out" }, 0)
+        .to(masks, { y: 0, duration: 0.95, ease: "power3.out", overwrite: true }, 0)
         .to(lines, { yPercent: 0, duration: 0.86, ease: "power3.out", stagger: 0.12, overwrite: true }, 0.08);
     };
 
-    createScrollReveal({ trigger: description, endTrigger: section, onEnter: playIn, onHide: setHidden, start: "top bottom+=60", end: "bottom -20%" });
+    createScrollReveal({ trigger: description, onEnter: playIn, onHide: setHidden, start: "top bottom", end: "bottom top" });
   };
 
   const initDescription = () => {
@@ -1456,6 +1537,7 @@ document.addEventListener("DOMContentLoaded", () => {
       initProductFeaturesTitleAnimation();
       initHeroServicesAnimation();
       initPlatformIntegrationsTitleAnimation();
+      initPlatformIntegrationLogoAnimations();
       initProductFeaturesDescriptionAnimation();
       initPreviewFollower();
       window.ScrollTrigger?.refresh();

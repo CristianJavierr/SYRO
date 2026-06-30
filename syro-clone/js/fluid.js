@@ -88,6 +88,7 @@ const renderEl = document.querySelector("#fluid-container .render");
 
 
 const containerEl = document.getElementById("fluid-container");
+let hasRenderedFirstFrame = false;
 let containerWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
 let containerHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
 
@@ -1323,7 +1324,13 @@ function update() {
       }
       rows.push(row);
     }
-    renderEl.innerHTML = rows.join("\n");
+    renderEl.textContent = rows.join("\n");
+
+    if (!hasRenderedFirstFrame) {
+      hasRenderedFirstFrame = true;
+      containerEl?.classList.add("is-fluid-ready");
+      containerEl?.classList.remove("is-fluid-seeded");
+    }
   }
 
   if (renderCanvas) {

@@ -996,7 +996,7 @@ body.is-loading .hero-title-char {
   letter-spacing: 0.32px;
   text-align: left;
   color: var(--black);
-  will-change: transform;
+  will-change: opacity;
   opacity: 0;
 }
 
@@ -1524,6 +1524,23 @@ body.is-loading .hero-title-char {
   line-height: 27.2px;
   letter-spacing: 0.32px;
   color: var(--white);
+  opacity: 0;
+  will-change: opacity;
+}
+
+.product-features-description-measure-word {
+  display: inline;
+}
+
+.product-features-description-line-mask {
+  display: block;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.product-features-description-line {
+  display: inline-block;
+  will-change: transform;
 }
 
 /* Product Feature Tabs Section (Desktop) */
@@ -2156,14 +2173,18 @@ body.is-loading .hero-title-char {
   width: 50px;
   height: 50px;
   object-fit: contain;
-  opacity: 0; /* Oculto temporalmente por reemplazo */
+  opacity: 1;
+  filter: brightness(0) invert(1);
+  will-change: transform, opacity;
 }
 
-.platform-integrations__grid figure:nth-child(1) img,
-.platform-integrations__grid figure:nth-child(2) img,
-.platform-integrations__grid figure:nth-child(3) img {
-  opacity: 1 !important;
-  filter: brightness(0) invert(1) !important;
+.platform-integrations__grid figure:nth-child(n + 4) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.platform-integrations__grid figure:nth-child(n + 4) img {
+  opacity: 0 !important;
 }
 
 /* Footer */
@@ -2435,29 +2456,23 @@ body.is-loading .hero-title-char {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 500;
-  stroke-dashoffset: 500;
-  opacity: 0;
-  transition: stroke 0.3s ease, opacity 0.4s ease;
+  stroke-dashoffset: 0;
+  opacity: 1;
+  transition: stroke 0.3s ease;
 }
 
-/* Play the draw animation when scrolled into view (slower, cinematic effect) */
-@media (min-width: 768px) {
-  .services.has-drawn .illustration-container path {
-    opacity: 1;
-    animation: drawPathsOnce 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.service-illustration.is-drawing .illustration-container path {
+  animation: drawServicePath 5.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes drawServicePath {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 500;
   }
-}
 
-@media (max-width: 767px) {
-  .service-card.has-drawn .illustration-container path {
-    opacity: 1;
-    animation: drawPathsOnce 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-}
-
-/* Base keyframe animation to draw the outlines once and stop at completion */
-@keyframes drawPathsOnce {
   to {
+    opacity: 1;
     stroke-dashoffset: 0;
   }
 }
@@ -3206,6 +3221,14 @@ body.is-loading .hero-title-char {
   overflow: hidden;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+.fluid-container.is-fluid-seeded .render {
+  opacity: 0.88;
+}
+
+.fluid-container.is-fluid-ready .render {
+  opacity: 1;
 }
 
 .fluid-container canvas {
