@@ -539,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
           endTrigger: c.title?.closest(".service-card") ?? section,
           onEnter: () => animateCard(c),
           onHide: () => resetCardAfterDelay(c),
-          start: "top bottom+=60",
+          start: "top bottom",
           end: "bottom 12%",
         });
       });
@@ -550,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
       trigger: section,
       onEnter: playIn,
       onHide: resetAfterDelay,
-      start: "top bottom+=60",
+      start: "top bottom",
       end: "bottom -25%",
     });
   };
