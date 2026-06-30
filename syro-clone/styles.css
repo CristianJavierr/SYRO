@@ -1053,7 +1053,6 @@ body.is-loading .hero-title-char {
   flex-direction: column;
   gap: 0;
   width: 100%;
-  max-width: 1512px;
   padding: 0 0;
   margin: 0;
   list-style: none;
@@ -1093,7 +1092,6 @@ body.is-loading .hero-title-char {
   align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
-  max-width: 1512px;
   height: 190px;
   padding: 0;
   text-decoration: none;
