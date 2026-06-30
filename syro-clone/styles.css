@@ -2650,7 +2650,11 @@ body.is-loading .hero-title-char {
   .case-study__logo {
     width: min(90%, 210px);
     height: auto;
-    filter: none;
+    filter: brightness(0);
+  }
+
+  .case-study:hover .case-study__logo {
+    filter: brightness(0);
   }
 
   .case-study__header {
@@ -2910,6 +2914,10 @@ body.is-loading .hero-title-char {
     padding: 0 40px;
   }
 
+  .case-study:hover {
+    color: var(--black);
+  }
+
   .case-study__hover-bg {
     display: none;
   }
@@ -3002,8 +3010,12 @@ body.is-loading .hero-title-char {
     left: 50%;
     width: min(70%, 169px);
     height: auto;
-    filter: none;
+    filter: brightness(0);
     transform: translate(-50%, -50%);
+  }
+
+  .case-study:hover .case-study__logo {
+    filter: brightness(0);
   }
 
   /* Product Features Intro Mobile styles */
