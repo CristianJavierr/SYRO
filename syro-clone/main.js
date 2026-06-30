@@ -1298,7 +1298,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const xTo = window.gsap.quickTo(follower, 'x', { duration: 0.6, ease: 'power3' });
       const yTo = window.gsap.quickTo(follower, 'y', { duration: 0.6, ease: 'power3' });
 
+      let isMouseInitialized = false;
       window.addEventListener('mousemove', e => {
+        if (!isMouseInitialized) {
+          isMouseInitialized = true;
+          window.gsap.set(follower, { x: e.clientX, y: e.clientY });
+        }
         xTo(e.clientX);
         yTo(e.clientY);
       });
@@ -1308,8 +1313,15 @@ document.addEventListener("DOMContentLoaded", () => {
       let isFirst = true;
 
       items.forEach((item, index) => {
-        item.addEventListener('mouseenter', () => {
+        item.addEventListener('mouseenter', (e) => {
           if (index === activeIndex) return;
+
+          // Position follower instantly under mouse on enter to prevent opening at 0,0
+          if (e && typeof e.clientX === 'number') {
+            window.gsap.set(follower, { x: e.clientX, y: e.clientY });
+            xTo(e.clientX);
+            yTo(e.clientY);
+          }
 
           const visual = item.querySelector('[data-follower-visual]');
           const newSrc = visual ? visual.getAttribute('src') : '';
