@@ -473,7 +473,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const shouldReplaySvg = () => window.matchMedia("(max-width: 767px)").matches;
 
-    const setSvgHidden = (c) => {
+    const setSvgHidden = (c, options = {}) => {
+      const { force = false } = options;
+      const hasStarted = c.svgDelayCall || c.svgTimeline;
+      if (!force && hasStarted) {
+        return;
+      }
+
       c.svgDelayCall?.kill();
       c.svgDelayCall = null;
       c.svgTimeline?.kill();
@@ -495,7 +501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const setHidden = () => {
       cardData.forEach((c) => {
         setTextHidden(c);
-        setSvgHidden(c);
+        setSvgHidden(c, { force: true });
       });
     };
 
@@ -519,14 +525,26 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const animateSvg = (c, delay = 0) => {
-      if (!c.illustration || !c.pathsWithLength.length || (!shouldReplaySvg() && c.hasDrawnSvg)) return;
-      setSvgHidden(c);
+      if (
+        !c.illustration ||
+        !c.pathsWithLength.length ||
+        c.svgDelayCall ||
+        c.svgTimeline ||
+        (!shouldReplaySvg() && c.hasDrawnSvg)
+      ) {
+        return;
+      }
+      setSvgHidden(c, { force: true });
 
       c.svgDelayCall = window.gsap.delayedCall(delay, () => {
         c.hasDrawnSvg = true;
         c.svgDelayCall = null;
         
-        c.svgTimeline = window.gsap.timeline();
+        c.svgTimeline = window.gsap.timeline({
+          onComplete: () => {
+            c.svgTimeline = null;
+          },
+        });
         c.pathsWithLength.forEach(({ path, length }, pathIndex) => {
           c.svgTimeline.to(path, {
             opacity: 1,
@@ -1046,7 +1064,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (!loader || !progressBar || !progressFill || !heroVideo || !heroVideoMedia) {
-      document.body.classList.remove("is-loading");
       onComplete?.();
       return;
     }
@@ -1058,8 +1075,6 @@ document.addEventListener("DOMContentLoaded", () => {
       heroVideoMedia.style.transform = "translate(-50%, -50%) scale(1)";
       document.body.classList.add("entry-open");
       window.setTimeout(() => {
-        document.body.classList.remove("is-loading", "entry-window", "entry-open");
-        loader.remove();
         onComplete?.();
       }, 120);
       return;
@@ -1147,8 +1162,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       heroVideo.style.clipPath = "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)";
       heroVideoMedia.style.transform = "translate(-50%, -50%) scale(1)";
-      document.body.classList.remove("is-loading", "entry-window", "entry-open");
-      loader.remove();
       onComplete?.();
     }, 2900);
   };
@@ -1627,12 +1640,30 @@ document.addEventListener("DOMContentLoaded", () => {
       initPreviewFollower();
       window.ScrollTrigger?.refresh();
       document.documentElement.classList.add("animations-ready");
+      document.body.classList.remove("is-loading", "entry-window", "entry-open");
+      document.querySelector(".entry-loader")?.remove();
+      document.dispatchEvent(new Event("syro:animations-ready"));
+    };
+
+    let descriptionInitialized = false;
+    const runDescriptionInit = () => {
+      if (descriptionInitialized) return;
+      descriptionInitialized = true;
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(initDescription);
+      });
     };
 
     if (document.fonts?.ready) {
-      document.fonts.ready.then(initDescription);
+      const fontReadyFallback = window.setTimeout(runDescriptionInit, 700);
+      document.fonts.ready
+        .then(() => {
+          window.clearTimeout(fontReadyFallback);
+          runDescriptionInit();
+        })
+        .catch(runDescriptionInit);
     } else {
-      initDescription();
+      runDescriptionInit();
     }
 
     document.querySelectorAll('a[href^="#"]').forEach((link) => {

@@ -1,11 +1,4 @@
 export const pageHtml = `
-    <div class="entry-loader" aria-live="polite" aria-label="Loading">
-      <div class="entry-progress-bar" aria-hidden="true">
-        <span class="entry-progress-bar__track"></span>
-        <span class="entry-progress-bar__fill"></span>
-      </div>
-    </div>
-
     <header class="site-header" aria-label="Site navigation">
       <a class="brand-link" href="/" aria-label="SYRO home">
         <img class="brand-logo" src="./assets/syrologo.png" alt="SYRO logo" />

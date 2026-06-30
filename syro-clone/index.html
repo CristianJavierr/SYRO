@@ -4,14 +4,67 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SYRO</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #060606;
+      }
+
+      body.is-loading {
+        overflow: hidden;
+      }
+
+      .entry-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        pointer-events: none;
+      }
+
+      .entry-progress-bar {
+        position: fixed;
+        left: 40px;
+        right: 40px;
+        bottom: 96px;
+        z-index: 82;
+        height: 1.5px;
+        transform: scaleX(0);
+        transform-origin: left center;
+      }
+
+      .entry-progress-bar__track,
+      .entry-progress-bar__fill {
+        position: absolute;
+        inset: 0;
+        transform-origin: left center;
+      }
+
+      .entry-progress-bar__track {
+        background: rgba(255, 255, 255, 0.24);
+      }
+
+      .entry-progress-bar__fill {
+        background: #fff;
+        transform: scaleX(0);
+      }
+
+      body:not(.is-loading) .entry-loader {
+        display: none;
+      }
+    </style>
     <script>
       document.documentElement.classList.add("js");
     </script>
   </head>
   <body class="is-loading">
+    <div class="entry-loader" aria-live="polite" aria-label="Loading">
+      <div class="entry-progress-bar" aria-hidden="true">
+        <span class="entry-progress-bar__track"></span>
+        <span class="entry-progress-bar__fill"></span>
+      </div>
+    </div>
     <div id="root"></div>
     <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
