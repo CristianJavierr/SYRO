@@ -73,45 +73,36 @@ document.addEventListener("DOMContentLoaded", () => {
     onEnter,
     onHide,
     start = "top bottom+=60",
-    hideStart = "top bottom+=60",
     end = "bottom top",
-    repairOffset = 60,
   }) => {
     let isVisible = false;
     const show = () => {
+      if (isVisible) return;
       isVisible = true;
       onEnter();
     };
     const hide = () => {
+      if (!isVisible) return;
       isVisible = false;
       onHide();
     };
-    const repairIfInsideRevealZone = () => {
-      const rect = trigger.getBoundingClientRect();
-      if (!isVisible && rect.top <= window.innerHeight + repairOffset && rect.bottom >= -repairOffset) {
-        show();
-      }
-    };
 
+    isVisible = true;
     hide();
 
-    // Trigger 1: Handles playIn (revealing) with the offset start (e.g. top bottom+=60)
-    window.ScrollTrigger.create({
-      trigger,
-      start,
-      onEnter: show,
-      onEnterBack: show,
-      onUpdate: repairIfInsideRevealZone,
-    });
-
-    // Trigger 2: Handles setHidden outside the reveal zone, avoiding the dead band between hide and reveal.
+    // One active range: entering reveals, leaving either side hides.
+    // Using the same start boundary for enter and leaveBack avoids the dead band
+    // caused by separate "top bottom+=60" and "top bottom" triggers.
     window.ScrollTrigger.create({
       trigger,
       endTrigger: endTrigger || trigger,
-      start: hideStart,
+      start,
       end,
+      onEnter: show,
+      onEnterBack: show,
       onLeave: hide,
       onLeaveBack: hide,
+      invalidateOnRefresh: true,
     });
   };
 
