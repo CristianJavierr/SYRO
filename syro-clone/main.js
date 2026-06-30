@@ -1303,6 +1303,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!isMouseInitialized) {
           isMouseInitialized = true;
           window.gsap.set(follower, { x: e.clientX, y: e.clientY });
+          xTo(e.clientX);
+          yTo(e.clientY);
+          if (xTo.tween) xTo.tween.progress(1);
+          if (yTo.tween) yTo.tween.progress(1);
         }
         xTo(e.clientX);
         yTo(e.clientY);
@@ -1321,6 +1325,8 @@ document.addEventListener("DOMContentLoaded", () => {
             window.gsap.set(follower, { x: e.clientX, y: e.clientY });
             xTo(e.clientX);
             yTo(e.clientY);
+            if (xTo.tween) xTo.tween.progress(1);
+            if (yTo.tween) yTo.tween.progress(1);
           }
 
           const visual = item.querySelector('[data-follower-visual]');
