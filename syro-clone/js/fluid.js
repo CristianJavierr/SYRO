@@ -904,49 +904,98 @@ function generateLogoSdf() {
   // Generate 2D Signed Distance Field (SDF) lookup grid
   logoSdf = new Float32Array(X_RESOLUTION * Y_RESOLUTION * 3); // [distance, dirX, dirY]
 
+  // We'll store the coordinates of the closest outside boundary pixel
+  const closestXGrid = new Int16Array(X_RESOLUTION * Y_RESOLUTION);
+  const closestYGrid = new Int16Array(X_RESOLUTION * Y_RESOLUTION);
+
+  // Initialize grid states
   for (let y = 0; y < Y_RESOLUTION; y++) {
     for (let x = 0; x < X_RESOLUTION; x++) {
       const idx = y * X_RESOLUTION + x;
       const isInside = pixels[idx * 4 + 3] > 40; // check alpha channel
-
+      
       if (!isInside) {
+        closestXGrid[idx] = x;
+        closestYGrid[idx] = y;
+      } else {
+        closestXGrid[idx] = -1;
+        closestYGrid[idx] = -1;
+      }
+    }
+  }
+
+  // O(N) Distance transform helper
+  const checkNeighbor = (x, y, nx, ny) => {
+    if (nx < 0 || nx >= X_RESOLUTION || ny < 0 || ny >= Y_RESOLUTION) return;
+    
+    const idx = y * X_RESOLUTION + x;
+    const nidx = ny * X_RESOLUTION + nx;
+    
+    const ncx = closestXGrid[nidx];
+    const ncy = closestYGrid[nidx];
+    
+    if (ncx === -1) return; // Neighbor is unresolved
+    
+    const curCx = closestXGrid[idx];
+    const curCy = closestYGrid[idx];
+    
+    if (curCx === -1) {
+      closestXGrid[idx] = ncx;
+      closestYGrid[idx] = ncy;
+    } else {
+      const d1 = (ncx - x) ** 2 + (ncy - y) ** 2;
+      const d2 = (curCx - x) ** 2 + (curCy - y) ** 2;
+      if (d1 < d2) {
+        closestXGrid[idx] = ncx;
+        closestYGrid[idx] = ncy;
+      }
+    }
+  };
+
+  // Pass 1: Forward Pass (top-left to bottom-right)
+  for (let y = 0; y < Y_RESOLUTION; y++) {
+    for (let x = 0; x < X_RESOLUTION; x++) {
+      checkNeighbor(x, y, x - 1, y);     // Left
+      checkNeighbor(x, y, x, y - 1);     // Top
+      checkNeighbor(x, y, x - 1, y - 1); // Top-Left
+      checkNeighbor(x, y, x + 1, y - 1); // Top-Right
+    }
+  }
+
+  // Pass 2: Backward Pass (bottom-right to top-left)
+  for (let y = Y_RESOLUTION - 1; y >= 0; y--) {
+    for (let x = X_RESOLUTION - 1; x >= 0; x--) {
+      checkNeighbor(x, y, x + 1, y);     // Right
+      checkNeighbor(x, y, x, y + 1);     // Bottom
+      checkNeighbor(x, y, x + 1, y + 1); // Bottom-Right
+      checkNeighbor(x, y, x - 1, y + 1); // Bottom-Left
+    }
+  }
+
+  // Populate the final logoSdf lookup array
+  for (let y = 0; y < Y_RESOLUTION; y++) {
+    for (let x = 0; x < X_RESOLUTION; x++) {
+      const idx = y * X_RESOLUTION + x;
+      const cx = closestXGrid[idx];
+      const cy = closestYGrid[idx];
+      
+      if (cx === -1 || (cx === x && cy === y)) {
         logoSdf[idx * 3] = 0;
         logoSdf[idx * 3 + 1] = 0;
         logoSdf[idx * 3 + 2] = 0;
-        continue;
+      } else {
+        const dx = cx - x;
+        const dy = cy - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        logoSdf[idx * 3] = dist;
+        logoSdf[idx * 3 + 1] = dx / dist; // normalized direction x
+        logoSdf[idx * 3 + 2] = dy / dist; // normalized direction y
       }
-
-      // Search for the closest outside cell (brute force search in a radius)
-      let minDist = 99999;
-      let closestX = x;
-      let closestY = y;
-      
-      const searchRadius = 25;
-      for (let sy = Math.max(0, y - searchRadius); sy < Math.min(Y_RESOLUTION, y + searchRadius); sy++) {
-        for (let sx = Math.max(0, x - searchRadius); sx < Math.min(X_RESOLUTION, x + searchRadius); sx++) {
-          const sidx = sy * X_RESOLUTION + sx;
-          const sIsInside = pixels[sidx * 4 + 3] > 40;
-          if (!sIsInside) {
-            const dxCell = sx - x;
-            const dyCell = sy - y;
-            const d = Math.sqrt(dxCell * dxCell + dyCell * dyCell);
-            if (d < minDist) {
-              minDist = d;
-              closestX = sx;
-              closestY = sy;
-            }
-          }
-        }
-      }
-
-      logoSdf[idx * 3] = minDist;
-      const len = Math.sqrt((closestX - x)**2 + (closestY - y)**2) || 1;
-      logoSdf[idx * 3 + 1] = (closestX - x) / len; // normalized direction vector
-      logoSdf[idx * 3 + 2] = (closestY - y) / len;
     }
   }
+
   logoLoaded = true;
-  console.log("Logo SDF generated successfully!");
+  console.log("Logo SDF generated in O(N) successfully!");
 }
 
 function setupScene() {
