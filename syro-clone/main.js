@@ -1,4 +1,11 @@
 const initLenis = () => {
+  // Disable Lenis completely on mobile to ensure native scrolling works perfectly
+  const isMobile = window.matchMedia("(max-width: 768px)").matches || window.matchMedia("(pointer: coarse)").matches;
+  if (isMobile) {
+    console.log("Mobile detected: disabling Lenis to keep native scroll active");
+    return null;
+  }
+
   if (window.lenis) {
     window.lenis.resize?.();
     window.lenis.start?.();
@@ -445,11 +452,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const setSvgHidden = (c) => {
       c.svgDelayCall?.kill();
       c.svgDelayCall = null;
+      c.svgTimeline?.kill();
+      c.svgTimeline = null;
       if (shouldReplaySvg()) {
         c.hasDrawnSvg = false;
       }
-      if ((!c.hasDrawnSvg || shouldReplaySvg()) && c.illustration) {
-        c.illustration.classList.remove("is-drawing");
+      if ((!c.hasDrawnSvg || shouldReplaySvg()) && c.paths.length) {
+        window.gsap.killTweensOf(c.paths);
+        window.gsap.set(c.paths, {
+          strokeDashoffset: 500,
+          opacity: 0
+        });
       }
     };
 
@@ -486,9 +499,16 @@ document.addEventListener("DOMContentLoaded", () => {
       c.svgDelayCall = window.gsap.delayedCall(delay, () => {
         c.hasDrawnSvg = true;
         c.svgDelayCall = null;
-        c.illustration.classList.remove("is-drawing");
-        c.illustration.offsetWidth;
-        c.illustration.classList.add("is-drawing");
+        
+        c.svgTimeline = window.gsap.timeline();
+        c.svgTimeline.to(c.paths, {
+          opacity: 1,
+          strokeDashoffset: 0,
+          duration: 2.0,
+          ease: "power2.out",
+          stagger: 0.03, // Draw paths sequentially to avoid paint lag
+          overwrite: true
+        });
       });
     };
 
@@ -557,7 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
       createScrollReveal({
         trigger: svgTrigger,
         endTrigger: svgTrigger,
-        onEnter: () => animateSvg(c),
+        onEnter: () => animateSvg(c, delay),
         onHide: () => setSvgHidden(c),
         start: "top bottom",
         end: "bottom top",
@@ -1554,12 +1574,16 @@ document.addEventListener("DOMContentLoaded", () => {
       link.addEventListener("click", (event) => {
         const target = document.querySelector(link.getAttribute("href"));
 
-        if (!target || !lenis) {
+        if (!target) {
           return;
         }
 
         event.preventDefault();
-        lenis.scrollTo(target, { offset: -20 });
+        if (lenis) {
+          lenis.scrollTo(target, { offset: -20 });
+        } else {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
       });
     });
   });

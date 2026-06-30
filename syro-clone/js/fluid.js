@@ -841,6 +841,9 @@ const isFluidMobile =
 if (isFluidMobile && containerEl) {
   containerEl.style.touchAction = "pan-y";
 }
+if (isFluidMobile && canvasEl) {
+  canvasEl.style.touchAction = "pan-y";
+}
 
 // Scroll gravity integration
 var lastScrollY = window.scrollY;
@@ -1130,63 +1133,33 @@ if (!isFluidMobile) {
   );
 }
 
-// Mobile: smart touch listeners that distinguish scroll from fluid interaction
+// Mobile: pointer listeners that leverage touch-action: pan-y for native scrolling
 if (isFluidMobile) {
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let isTouchInteraction = false; // true = user is interacting with fluid, not scrolling
-  let touchDecided = false;       // true = we've committed to scroll or interact
-  const SCROLL_THRESHOLD = 12;    // px of movement before we decide
+  let isPointerInteraction = false;
 
-  containerEl.addEventListener("touchstart", (event) => {
-    const touch = event.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    isTouchInteraction = false;
-    touchDecided = false;
-    // Do NOT preventDefault — let browser handle potential scroll
-  }, { passive: true });
+  containerEl.addEventListener("pointerdown", (event) => {
+    scene.obstacleRadius = 0.0;
+    scene.dt = SPEED_1;
+    startDrag(event.clientX, event.clientY);
+    isPointerInteraction = true;
+  });
 
-  containerEl.addEventListener("touchmove", (event) => {
-    const touch = event.touches[0];
-    const dx = touch.clientX - touchStartX;
-    const dy = touch.clientY - touchStartY;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-
-    if (!touchDecided) {
-      // Wait until the user has moved enough to decide
-      if (absDx > SCROLL_THRESHOLD || absDy > SCROLL_THRESHOLD) {
-        touchDecided = true;
-        // Predominantly horizontal = fluid interaction; vertical = scroll
-        isTouchInteraction = absDx > absDy;
-
-        if (isTouchInteraction) {
-          // Start the fluid drag from the current position
-          scene.obstacleRadius = 0.0;
-          scene.dt = SPEED_1;
-          startDrag(touch.clientX, touch.clientY);
-        }
-      }
-      return; // Still deciding, don't do anything yet
+  containerEl.addEventListener("pointermove", (event) => {
+    if (isPointerInteraction) {
+      drag(event.clientX, event.clientY);
     }
+  });
 
-    if (isTouchInteraction) {
-      // Feed coordinates to fluid simulation
-      event.preventDefault();
-      drag(touch.clientX, touch.clientY);
-    }
-    // If not isTouchInteraction, do nothing — browser handles native scroll
-  }, { passive: false });
-
-  containerEl.addEventListener("touchend", () => {
-    if (isTouchInteraction) {
+  const stopPointerDrag = () => {
+    if (isPointerInteraction) {
       scene.dt = SPEED_2;
       endDrag();
     }
-    isTouchInteraction = false;
-    touchDecided = false;
-  }, { passive: true });
+    isPointerInteraction = false;
+  };
+
+  containerEl.addEventListener("pointerup", stopPointerDrag);
+  containerEl.addEventListener("pointercancel", stopPointerDrag);
 }
 
 document.addEventListener("keydown", (event) => {
