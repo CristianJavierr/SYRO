@@ -387,9 +387,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const cardData = cards.map((card) => {
       const title = card.querySelector(".service-title");
       const desc = card.querySelector(".service-desc");
+      const content = card.querySelector(".service-content");
       const titleChars = title ? window.gsap.utils.toArray(title.querySelectorAll(".products-title-char")) : [];
       const descLines = desc ? window.gsap.utils.toArray(desc.querySelectorAll(".service-desc-line")) : [];
-      return { title, desc, titleChars, descLines };
+      return { title, desc, content, titleChars, descLines };
     });
 
     const hasElements = cardData.some(c => c.titleChars.length || c.descLines.length);
@@ -402,8 +403,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       return;
     }
-
-    let activeTimeline = null;
 
     const setCardHidden = (c) => {
       c.resetCall?.kill();
@@ -424,7 +423,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const setHidden = () => {
-      activeTimeline?.kill();
       cardData.forEach(setCardHidden);
     };
 
@@ -484,74 +482,18 @@ document.addEventListener("DOMContentLoaded", () => {
       c.resetCall = window.gsap.delayedCall(0.1, () => setCardHidden(c));
     };
 
-    const playIn = () => {
-      activeTimeline?.kill();
-      cardData.forEach(c => {
-        c.resetCall?.kill();
-        setCardReady(c);
-      });
-
-      activeTimeline = window.gsap.timeline();
-      
-      cardData.forEach((c, cardIdx) => {
-        const cardStartTime = cardIdx * 0.45;
-        
-        if (c.titleChars.length) {
-          activeTimeline.to(c.titleChars, {
-            y: "0em",
-            rotate: 0,
-            duration: 0.55,
-            ease: "power3.out",
-            stagger: 0.02,
-            overwrite: true,
-          }, cardStartTime);
-        }
-        
-        if (c.descLines.length) {
-          activeTimeline.to(c.desc, {
-            y: 0,
-            opacity: 1,
-            duration: 0.6,
-            ease: "power3.out",
-          }, cardStartTime + 0.15)
-          .to(c.descLines, {
-            yPercent: 0,
-            duration: 0.55,
-            ease: "power3.out",
-            stagger: 0.06,
-            overwrite: true,
-          }, cardStartTime + 0.20);
-        }
-      });
-    };
-
-    const resetAfterDelay = () => {
-      activeTimeline?.kill();
-      cardData.forEach(resetCardAfterDelay);
-    };
-
     setHidden();
 
-    if (window.matchMedia("(max-width: 767px)").matches) {
-      cardData.forEach((c) => {
-        createScrollReveal({
-          trigger: c.title,
-          endTrigger: c.title?.closest(".service-card") ?? section,
-          onEnter: () => animateCard(c),
-          onHide: () => resetCardAfterDelay(c),
-          start: "top bottom",
-          end: "bottom 12%",
-        });
+    cardData.forEach((c) => {
+      const textTrigger = c.content || c.title || section;
+      createScrollReveal({
+        trigger: textTrigger,
+        endTrigger: textTrigger,
+        onEnter: () => animateCard(c),
+        onHide: () => resetCardAfterDelay(c),
+        start: "top bottom",
+        end: "bottom top",
       });
-      return;
-    }
-
-    createScrollReveal({
-      trigger: section,
-      onEnter: playIn,
-      onHide: resetAfterDelay,
-      start: "top bottom",
-      end: "bottom -25%",
     });
   };
 
