@@ -2455,8 +2455,6 @@ body.is-loading .hero-title-char {
   stroke-width: 1.2px;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 500;
-  stroke-dashoffset: 0;
   opacity: 1;
   transition: stroke 0.3s ease;
 }

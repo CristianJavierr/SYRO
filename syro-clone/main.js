@@ -408,14 +408,34 @@ document.addEventListener("DOMContentLoaded", () => {
       const content = card.querySelector(".service-content");
       const illustration = card.querySelector(".service-illustration");
       const paths = window.gsap.utils.toArray(card.querySelectorAll(".illustration-container path"));
+
+      // Pre-calculate path lengths and set initial hidden state
+      const pathsWithLength = paths.map((path) => {
+        let length = 0;
+        try {
+          length = path.getTotalLength() || 0;
+        } catch (e) {
+          length = 300; // Safe fallback
+        }
+
+        // Pre-set exact dash settings for performance
+        window.gsap.set(path, {
+          strokeDasharray: length,
+          strokeDashoffset: length,
+          opacity: 0
+        });
+
+        return { path, length };
+      });
+
       const titleChars = title ? window.gsap.utils.toArray(title.querySelectorAll(".products-title-char")) : [];
       const descMasks = desc ? window.gsap.utils.toArray(desc.querySelectorAll(".service-desc-line-mask")) : [];
       const descLines = desc ? window.gsap.utils.toArray(desc.querySelectorAll(".service-desc-line")) : [];
 
-      return { title, desc, content, illustration, paths, titleChars, descMasks, descLines };
+      return { title, desc, content, illustration, pathsWithLength, titleChars, descMasks, descLines };
     });
 
-    const hasElements = cardData.some(c => c.titleChars.length || c.descLines.length || c.paths.length);
+    const hasElements = cardData.some(c => c.titleChars.length || c.descLines.length || c.pathsWithLength.length);
     if (!hasElements) return;
 
     if (reduceMotion) {
@@ -423,7 +443,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (c.title) window.gsap.set(c.title, { opacity: 1 });
         if (c.titleChars.length) window.gsap.set(c.titleChars, { y: "0em", rotate: 0 });
         if (c.descLines.length) window.gsap.set([c.desc, ...c.descMasks, ...c.descLines], { y: 0, yPercent: 0, opacity: 1 });
-        if (c.paths.length) window.gsap.set(c.paths, { opacity: 1, strokeDashoffset: 0 });
+        if (c.pathsWithLength.length) {
+          c.pathsWithLength.forEach(({ path }) => {
+            window.gsap.set(path, { opacity: 1, strokeDashoffset: 0 });
+          });
+        }
       });
       return;
     }
@@ -457,11 +481,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (shouldReplaySvg()) {
         c.hasDrawnSvg = false;
       }
-      if ((!c.hasDrawnSvg || shouldReplaySvg()) && c.paths.length) {
-        window.gsap.killTweensOf(c.paths);
-        window.gsap.set(c.paths, {
-          strokeDashoffset: 500,
-          opacity: 0
+      if ((!c.hasDrawnSvg || shouldReplaySvg()) && c.pathsWithLength.length) {
+        c.pathsWithLength.forEach(({ path, length }) => {
+          window.gsap.killTweensOf(path);
+          window.gsap.set(path, {
+            strokeDashoffset: length,
+            opacity: 0
+          });
         });
       }
     };
@@ -493,7 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const animateSvg = (c, delay = 0) => {
-      if (!c.illustration || !c.paths.length || (!shouldReplaySvg() && c.hasDrawnSvg)) return;
+      if (!c.illustration || !c.pathsWithLength.length || (!shouldReplaySvg() && c.hasDrawnSvg)) return;
       setSvgHidden(c);
 
       c.svgDelayCall = window.gsap.delayedCall(delay, () => {
@@ -501,13 +527,14 @@ document.addEventListener("DOMContentLoaded", () => {
         c.svgDelayCall = null;
         
         c.svgTimeline = window.gsap.timeline();
-        c.svgTimeline.to(c.paths, {
-          opacity: 1,
-          strokeDashoffset: 0,
-          duration: 2.0,
-          ease: "power2.out",
-          stagger: 0.03, // Draw paths sequentially to avoid paint lag
-          overwrite: true
+        c.pathsWithLength.forEach(({ path, length }, pathIndex) => {
+          c.svgTimeline.to(path, {
+            opacity: 1,
+            strokeDashoffset: 0,
+            duration: 1.2,
+            ease: "power2.out",
+            overwrite: true
+          }, pathIndex * 0.02); // Stagger paths drawing with custom index offset
         });
       });
     };
