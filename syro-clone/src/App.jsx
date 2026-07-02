@@ -30,22 +30,16 @@ export default function App() {
     document.body.classList.add("is-loading");
 
     const runPerformanceBenchmark = () => {
-      const start = performance.now();
-      let val = 0;
-      // Run 500,000 mathematical iterations to measure CPU speed
-      for (let i = 0; i < 500000; i++) {
-        val += Math.sin(i) * Math.cos(i);
-      }
-      const duration = performance.now() - start;
-      console.log(`[Fluid Benchmark] Performance test took ${duration.toFixed(2)}ms`);
-
-      // Fast (<5ms): 1.0x, Medium (5ms-15ms): 1.25x (fewer cells), Slow (>15ms): 1.6x (even fewer cells)
+      const cores = navigator.hardwareConcurrency || 4;
+      const memory = navigator.deviceMemory || 4;
       let multiplier = 1.0;
-      if (duration > 15) {
+
+      if (cores <= 2 || memory <= 2) {
         multiplier = 1.6;
-      } else if (duration > 5) {
+      } else if (cores <= 4 || memory <= 4) {
         multiplier = 1.25;
       }
+
       window.fluidGridMultiplier = multiplier;
     };
 
@@ -162,6 +156,11 @@ export default function App() {
         document.documentElement.classList.add("animations-ready");
         document.body.classList.remove("is-loading", "entry-window", "entry-open");
       }, 9000);
+      const fluidModulePromise = importWithRetry(() => import("../js/fluid.js"))
+        .catch((error) => {
+          console.warn("Fluid script did not start", error);
+          return null;
+        });
 
       try {
         await importWithRetry(() => import("../main.js"));
@@ -189,8 +188,8 @@ export default function App() {
 
       try {
         seedFluidInitialFrame();
-        const fluidModule = await importWithRetry(() => import("../js/fluid.js"));
-        fluidModule.initSyroFluid?.();
+        const fluidModule = await fluidModulePromise;
+        fluidModule?.initSyroFluid?.();
       } catch (error) {
         console.warn("Fluid script did not start", error);
       }

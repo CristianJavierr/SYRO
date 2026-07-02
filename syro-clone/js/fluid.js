@@ -59,6 +59,13 @@ const RENDER_CHARS = [
   [["O", 36198], ["O", 36198], ["o", 30762], ...BASE],
 ];
 
+const RENDER_CHAR_DICTIONARIES = RENDER_CHARS.map((chars) =>
+  [...chars]
+    .sort((a, b) => a[1] - b[1])
+    .map(([char]) => char)
+    .join("")
+);
+
 // // amount of bright pixels a character shows at 12px font size
 // const RENDER_CHAR_B = [
 //   [" ", 0],
@@ -95,6 +102,8 @@ const renderEl = document.querySelector("#fluid-container .render");
 
 const containerEl = document.getElementById("fluid-container");
 let hasRenderedFirstFrame = false;
+let lastAsciiFrame = "";
+let lastAsciiRenderTime = 0;
 let containerWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
 let containerHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
 
@@ -125,6 +134,14 @@ let RESOLUTION = Y_RESOLUTION;
 const GRAVITY = -9.81;
 
 const extraSized = 0;
+const ASCII_FRAME_INTERVAL = isFluidMobile ? 1000 / 30 : 1000 / 45;
+const runFluidIdle = (callback, timeout = 800) => {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(callback, { timeout });
+  } else {
+    window.setTimeout(callback, 32);
+  }
+};
 
 canvasEl.width = realWidth;
 canvasEl.height = realHeight;
@@ -187,8 +204,27 @@ class FlipFluid {
     this.prevV = new Float32Array(this.fNumCells);
     this.p = new Float32Array(this.fNumCells);
     this.s = new Float32Array(this.fNumCells);
+    this.baseCellType = new Int32Array(this.fNumCells);
     this.cellType = new Int32Array(this.fNumCells);
     this.cellColor = new Float32Array(3 * this.fNumCells);
+    this.activeFluidCells = new Int32Array(this.fNumCells);
+    this.numActiveFluidCells = 0;
+    this.solidCells = new Int32Array(this.fNumCells);
+    this.numSolidCells = 0;
+    this.solidUCells = new Int32Array(this.fNumCells);
+    this.solidVCells = new Int32Array(this.fNumCells);
+    this.numSolidUCells = 0;
+    this.numSolidVCells = 0;
+    this.activeUCells = new Int32Array(this.fNumCells);
+    this.activeVCells = new Int32Array(this.fNumCells);
+    this.activeUMarks = new Int32Array(this.fNumCells);
+    this.activeVMarks = new Int32Array(this.fNumCells);
+    this.activeUStamp = 0;
+    this.activeVStamp = 0;
+    this.numActiveUCells = 0;
+    this.numActiveVCells = 0;
+    this.coloredCells = new Int32Array(this.fNumCells);
+    this.numColoredCells = 0;
 
     // particles
 
@@ -214,6 +250,37 @@ class FlipFluid {
     this.cellParticleIds = new Int32Array(maxParticles);
 
     this.numParticles = 0;
+  }
+
+  rebuildSolidCells() {
+    this.numSolidCells = 0;
+    this.numSolidUCells = 0;
+    this.numSolidVCells = 0;
+    this.baseCellType.fill(AIR_CELL);
+
+    for (var i = 0; i < this.fNumCells; i++) {
+      if (this.s[i] == 0.0) {
+        this.baseCellType[i] = SOLID_CELL;
+        this.solidCells[this.numSolidCells++] = i;
+      }
+    }
+
+    var n = this.fNumY;
+
+    for (var i = 0; i < this.fNumX; i++) {
+      for (var j = 0; j < this.fNumY; j++) {
+        var cellNr = i * n + j;
+        var solid = this.baseCellType[cellNr] == SOLID_CELL;
+
+        if (solid || (i > 0 && this.baseCellType[(i - 1) * n + j] == SOLID_CELL)) {
+          this.solidUCells[this.numSolidUCells++] = cellNr;
+        }
+
+        if (solid || (j > 0 && this.baseCellType[i * n + j - 1] == SOLID_CELL)) {
+          this.solidVCells[this.numSolidVCells++] = cellNr;
+        }
+      }
+    }
   }
 
   integrateParticles(dt) {
@@ -449,9 +516,10 @@ class FlipFluid {
       var sum = 0.0;
       var numFluidCells = 0;
 
-      for (var i = 0; i < this.fNumCells; i++) {
-        if (this.cellType[i] == FLUID_CELL) {
-          sum += d[i];
+      for (var i = 0; i < this.numActiveFluidCells; i++) {
+        var cellNr = this.activeFluidCells[i];
+        if (this.cellType[cellNr] == FLUID_CELL) {
+          sum += d[cellNr];
           numFluidCells++;
         }
       }
@@ -476,8 +544,8 @@ class FlipFluid {
       this.u.fill(0.0);
       this.v.fill(0.0);
 
-      for (var i = 0; i < this.fNumCells; i++)
-        this.cellType[i] = this.s[i] == 0.0 ? SOLID_CELL : AIR_CELL;
+      this.cellType.set(this.baseCellType);
+      this.numActiveFluidCells = 0;
 
       for (var i = 0; i < this.numParticles; i++) {
         var x = this.particlePos[2 * i];
@@ -485,8 +553,12 @@ class FlipFluid {
         var xi = clamp(Math.floor(x * h1), 0, this.fNumX - 1);
         var yi = clamp(Math.floor(y * h1), 0, this.fNumY - 1);
         var cellNr = xi * n + yi;
-        if (this.cellType[cellNr] == AIR_CELL)
+        if (this.cellType[cellNr] == AIR_CELL) {
           this.cellType[cellNr] = FLUID_CELL;
+          if (xi > 0 && xi < this.fNumX - 1 && yi > 0 && yi < this.fNumY - 1) {
+            this.activeFluidCells[this.numActiveFluidCells++] = cellNr;
+          }
+        }
       }
     }
 
@@ -497,6 +569,32 @@ class FlipFluid {
       var f = component == 0 ? this.u : this.v;
       var prevF = component == 0 ? this.prevU : this.prevV;
       var d = component == 0 ? this.du : this.dv;
+      var activeVelocityCells = null;
+      var activeVelocityMarks = null;
+      var activeVelocityStamp = 0;
+      var activeVelocityCount = 0;
+
+      if (toGrid) {
+        if (component == 0) {
+          this.activeUStamp = (this.activeUStamp + 1) | 0;
+          if (this.activeUStamp <= 0) {
+            this.activeUMarks.fill(0);
+            this.activeUStamp = 1;
+          }
+          activeVelocityCells = this.activeUCells;
+          activeVelocityMarks = this.activeUMarks;
+          activeVelocityStamp = this.activeUStamp;
+        } else {
+          this.activeVStamp = (this.activeVStamp + 1) | 0;
+          if (this.activeVStamp <= 0) {
+            this.activeVMarks.fill(0);
+            this.activeVStamp = 1;
+          }
+          activeVelocityCells = this.activeVCells;
+          activeVelocityMarks = this.activeVMarks;
+          activeVelocityStamp = this.activeVStamp;
+        }
+      }
 
       for (var i = 0; i < this.numParticles; i++) {
         var x = this.particlePos[2 * i];
@@ -536,6 +634,23 @@ class FlipFluid {
           d[nr2] += d2;
           f[nr3] += pv * d3;
           d[nr3] += d3;
+
+          if (activeVelocityMarks[nr0] != activeVelocityStamp) {
+            activeVelocityMarks[nr0] = activeVelocityStamp;
+            activeVelocityCells[activeVelocityCount++] = nr0;
+          }
+          if (activeVelocityMarks[nr1] != activeVelocityStamp) {
+            activeVelocityMarks[nr1] = activeVelocityStamp;
+            activeVelocityCells[activeVelocityCount++] = nr1;
+          }
+          if (activeVelocityMarks[nr2] != activeVelocityStamp) {
+            activeVelocityMarks[nr2] = activeVelocityStamp;
+            activeVelocityCells[activeVelocityCount++] = nr2;
+          }
+          if (activeVelocityMarks[nr3] != activeVelocityStamp) {
+            activeVelocityMarks[nr3] = activeVelocityStamp;
+            activeVelocityCells[activeVelocityCount++] = nr3;
+          }
         } else {
           var offset = component == 0 ? n : 1;
           var valid0 =
@@ -584,25 +699,26 @@ class FlipFluid {
       }
 
       if (toGrid) {
-        for (var i = 0; i < f.length; i++) {
-          if (d[i] > 0.0) f[i] /= d[i];
+        if (component == 0) {
+          this.numActiveUCells = activeVelocityCount;
+        } else {
+          this.numActiveVCells = activeVelocityCount;
         }
 
-        // restore solid cells
+        for (var i = 0; i < activeVelocityCount; i++) {
+          var cellNr = activeVelocityCells[i];
+          if (d[cellNr] > 0.0) f[cellNr] /= d[cellNr];
+        }
 
-        for (var i = 0; i < this.fNumX; i++) {
-          for (var j = 0; j < this.fNumY; j++) {
-            var solid = this.cellType[i * n + j] == SOLID_CELL;
-            if (
-              solid ||
-              (i > 0 && this.cellType[(i - 1) * n + j] == SOLID_CELL)
-            )
-              this.u[i * n + j] = this.prevU[i * n + j];
-            if (
-              solid ||
-              (j > 0 && this.cellType[i * n + j - 1] == SOLID_CELL)
-            )
-              this.v[i * n + j] = this.prevV[i * n + j];
+        if (component == 0) {
+          for (var i = 0; i < this.numSolidUCells; i++) {
+            var solidUCell = this.solidUCells[i];
+            this.u[solidUCell] = this.prevU[solidUCell];
+          }
+        } else {
+          for (var i = 0; i < this.numSolidVCells; i++) {
+            var solidVCell = this.solidVCells[i];
+            this.v[solidVCell] = this.prevV[solidVCell];
           }
         }
       }
@@ -621,54 +737,47 @@ class FlipFluid {
 
     var n = this.fNumY;
     var cp = (this.density * this.h) / dt;
-
-    for (var i = 0; i < this.fNumCells; i++) {
-      var u = this.u[i];
-      var v = this.v[i];
-    }
+    var activeFluidCells = this.activeFluidCells;
 
     for (var iter = 0; iter < numIters; iter++) {
-      for (var i = 1; i < this.fNumX - 1; i++) {
-        for (var j = 1; j < this.fNumY - 1; j++) {
-          if (this.cellType[i * n + j] != FLUID_CELL) continue;
+      for (var activeIndex = 0; activeIndex < this.numActiveFluidCells; activeIndex++) {
+        var center = activeFluidCells[activeIndex];
+        if (this.cellType[center] != FLUID_CELL) continue;
 
-          var center = i * n + j;
-          var left = (i - 1) * n + j;
-          var right = (i + 1) * n + j;
-          var bottom = i * n + j - 1;
-          var top = i * n + j + 1;
+        var left = center - n;
+        var right = center + n;
+        var bottom = center - 1;
+        var top = center + 1;
 
-          var s = this.s[center];
-          var sx0 = this.s[left];
-          var sx1 = this.s[right];
-          var sy0 = this.s[bottom];
-          var sy1 = this.s[top];
-          var s = sx0 + sx1 + sy0 + sy1;
-          if (s == 0.0) continue;
+        var sx0 = this.s[left];
+        var sx1 = this.s[right];
+        var sy0 = this.s[bottom];
+        var sy1 = this.s[top];
+        var s = sx0 + sx1 + sy0 + sy1;
+        if (s == 0.0) continue;
 
-          var div =
-            this.u[right] -
-            this.u[center] +
-            this.v[top] -
-            this.v[center];
+        var div =
+          this.u[right] -
+          this.u[center] +
+          this.v[top] -
+          this.v[center];
 
-          if (this.particleRestDensity > 0.0 && compensateDrift) {
-            var k = 1.0;
-            var compression =
-              this.particleDensity[i * n + j] -
-              this.particleRestDensity;
-            if (compression > 0.0) div = div - k * compression;
-          }
-
-          var p = -div / s;
-          p *= overRelaxation;
-          this.p[center] += cp * p;
-
-          this.u[center] -= sx0 * p;
-          this.u[right] += sx1 * p;
-          this.v[center] -= sy0 * p;
-          this.v[top] += sy1 * p;
+        if (this.particleRestDensity > 0.0 && compensateDrift) {
+          var k = 1.0;
+          var compression =
+            this.particleDensity[center] -
+            this.particleRestDensity;
+          if (compression > 0.0) div = div - k * compression;
         }
+
+        var p = -div / s;
+        p *= overRelaxation;
+        this.p[center] += cp * p;
+
+        this.u[center] -= sx0 * p;
+        this.u[right] += sx1 * p;
+        this.v[center] -= sy0 * p;
+        this.v[top] += sy1 * p;
       }
     }
   }
@@ -753,18 +862,31 @@ class FlipFluid {
   }
 
   updateCellColors() {
-    this.cellColor.fill(0.0);
+    for (var i = 0; i < this.numColoredCells; i++) {
+      var previousCell = this.coloredCells[i];
+      this.cellColor[3 * previousCell] = 0.0;
+      this.cellColor[3 * previousCell + 1] = 0.0;
+      this.cellColor[3 * previousCell + 2] = 0.0;
+    }
 
-    for (var i = 0; i < this.fNumCells; i++) {
-      if (this.cellType[i] == SOLID_CELL) {
-        this.cellColor[3 * i] = 0.5;
-        this.cellColor[3 * i + 1] = 0.5;
-        this.cellColor[3 * i + 2] = 0.5;
-      } else if (this.cellType[i] == FLUID_CELL) {
-        var d = this.particleDensity[i];
+    this.numColoredCells = 0;
+
+    for (var i = 0; i < this.numSolidCells; i++) {
+      var solidCell = this.solidCells[i];
+      this.coloredCells[this.numColoredCells++] = solidCell;
+      this.cellColor[3 * solidCell] = 0.5;
+      this.cellColor[3 * solidCell + 1] = 0.5;
+      this.cellColor[3 * solidCell + 2] = 0.5;
+    }
+
+    for (var i = 0; i < this.numActiveFluidCells; i++) {
+      var fluidCell = this.activeFluidCells[i];
+      if (this.cellType[fluidCell] == FLUID_CELL) {
+        this.coloredCells[this.numColoredCells++] = fluidCell;
+        var d = this.particleDensity[fluidCell];
         if (this.particleRestDensity > 0.0)
           d /= this.particleRestDensity;
-        this.setSciColor(i, d, 0.0, 2.0);
+        this.setSciColor(fluidCell, d, 0.0, 2.0);
       }
     }
   }
@@ -833,6 +955,26 @@ var scene = {
   fluid: null,
 };
 let f = null;
+let asciiRowsMeta = [];
+
+function rebuildAsciiRowsMeta() {
+  if (!f) return;
+
+  asciiRowsMeta = [];
+  for (let i = f.fNumY - CELL_CROP_Y; i > CELL_CROP_Y; i--) {
+    const row = [];
+
+    for (let j = CELL_CROP_X; j < f.fNumX - CELL_CROP_X; j++) {
+      row.push({
+        colorOffset: 3 * (j * f.fNumY + i),
+        dictionary: RENDER_CHAR_DICTIONARIES[(i + j + 1) % RENDER_CHAR_DICTIONARIES.length],
+        sdfOffset: (i * f.fNumX + j) * 3,
+      });
+    }
+
+    asciiRowsMeta.push(row);
+  }
+}
 
 
 // Custom Logo SDF variables and generator
@@ -869,6 +1011,7 @@ window.addEventListener("scroll", () => {
   
   scrollGravityY += clampedDelta * impulse;
   scrollGravityY = Math.max(-gravityLimit, Math.min(gravityLimit, scrollGravityY));
+  startFluidLoop();
 }, { passive: true });
 
 
@@ -889,7 +1032,7 @@ function generateLogoSdf() {
   const offscreen = document.createElement("canvas");
   offscreen.width = gridX;
   offscreen.height = gridY;
-  const oCtx = offscreen.getContext("2d");
+  const oCtx = offscreen.getContext("2d", { willReadFrequently: true });
 
   oCtx.clearRect(0, 0, gridX, gridY);
 
@@ -1077,6 +1220,8 @@ function setupScene() {
       f.s[i * n + j] = s;
     }
   }
+
+  f.rebuildSolidCells();
 }
 
 function setObstacle(x, y, reset) {
@@ -1121,6 +1266,25 @@ function setObstacle(x, y, reset) {
 
 var mouseDown = false;
 
+function setObstacleFromLocalPoint(mx, my, reset, activate = true) {
+  const x = mx / cScale;
+  const y = (canvasEl.height - my) / cScale;
+
+  setObstacle(x, y, reset);
+  if (activate) {
+    scene.paused = false;
+    startFluidLoop();
+  }
+}
+
+function setInitialObstacle() {
+  setObstacleFromLocalPoint(containerWidth / 2, containerHeight * 0.54, true, false);
+  mouseDown = false;
+  scene.obstacleVelX = 0.0;
+  scene.obstacleVelY = 0.0;
+  scene.paused = true;
+}
+
 function startDrag(x, y) {
   let bounds = canvasEl.getBoundingClientRect();
 
@@ -1128,11 +1292,7 @@ function startDrag(x, y) {
   let my = y - bounds.top - canvasEl.clientTop;
   mouseDown = true;
 
-  x = mx / cScale;
-  y = (canvasEl.height - my) / cScale;
-
-  setObstacle(x, y, true);
-  scene.paused = false;
+  setObstacleFromLocalPoint(mx, my, true);
 }
 
 function drag(x, y) {
@@ -1227,6 +1387,7 @@ document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "p":
       scene.paused = !scene.paused;
+      startFluidLoop();
       break;
     case "m":
       scene.paused = false;
@@ -1250,6 +1411,7 @@ window.addEventListener("resize", () => {
 
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
+    const wasPaused = scene.paused;
     containerWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
     containerHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
     lastLayoutWidth = containerWidth;
@@ -1281,13 +1443,17 @@ window.addEventListener("resize", () => {
 
     cScale = canvasEl.height / simHeight;
     simWidth = canvasEl.width / cScale;
+    lastAsciiFrame = "";
+    lastAsciiRenderTime = 0;
 
     setupScene();
+    rebuildAsciiRowsMeta();
     generateLogoSdf();
     if (!isFluidMobile) {
-      startDrag(containerWidth / 2, containerHeight * 0.54);
-      endDrag();
+      setInitialObstacle();
     }
+    scene.paused = wasPaused;
+    startFluidLoop();
   }, 250);
 });
 
@@ -1369,9 +1535,42 @@ function simulate() {
   scene.frameNr++;
 }
 
-const ctx = canvasEl.getContext("2d");
+let ctx = null;
+let fluidFrameId = 0;
+let warmupRemainingFrames = 0;
+let fluidShouldRun = false;
+const INITIAL_WARMUP_FRAMES = isFluidMobile ? 18 : 36;
+const LOGO_WARMUP_FRAMES = isFluidMobile ? 8 : 12;
 
-function update() {
+function queueFluidWarmup(frameCount = INITIAL_WARMUP_FRAMES) {
+  if (!scene.fluid) return;
+
+  warmupRemainingFrames = Math.max(warmupRemainingFrames, frameCount);
+  if (document.hidden) return;
+
+  scene.paused = false;
+  startFluidLoop();
+}
+
+function startFluidLoop() {
+  if (document.hidden || scene.paused || fluidFrameId) {
+    return;
+  }
+
+  fluidFrameId = requestAnimationFrame(update);
+}
+
+function update(now = performance.now()) {
+  fluidFrameId = 0;
+  if (document.hidden) {
+    scene.paused = true;
+    return;
+  }
+
+  if (scene.paused) {
+    return;
+  }
+
   // Decay scroll gravity smoothly towards 0
   scrollGravityY *= isFluidMobile ? 0.85 : 0.91;
   if (Math.abs(scrollGravityY) < 0.1) {
@@ -1384,33 +1583,26 @@ function update() {
   scene.obstacleRadius = (scene.obstacleRadius * 3 + MAX_RADIUS) / 4;
   simulate();
 
-  const renderAscii = scene.paused ? false : true;
+  const renderAscii = scene.paused ? false : now - lastAsciiRenderTime >= ASCII_FRAME_INTERVAL;
   const renderCanvas = scene.paused ? false : false;
 
   if (renderAscii) {
     let rows = [];
-    for (let i = f.fNumY - CELL_CROP_Y; i > CELL_CROP_Y; i--) {
+    for (const cells of asciiRowsMeta) {
       let row = "";
-      for (let j = CELL_CROP_X; j < f.fNumX - CELL_CROP_X; j++) {
-        const CURRENT_RENDER_CHAR =
-          RENDER_CHARS[Math.floor((i + j + 1) % RENDER_CHARS.length)];
-
-        const RENDER_CHAR_DICTIONARY = CURRENT_RENDER_CHAR.sort(
-          (a, b) => a[1] - b[1]
-        )
-          .map(([char]) => char)
-          .join("");
-
-        const cellColor = f.cellColor[3 * (j * f.fNumY + i)];
-        let char = RENDER_CHAR_DICTIONARY[
-          Math.floor(cellColor * RENDER_CHAR_DICTIONARY.length)
-        ];
+      for (const cell of cells) {
+        const RENDER_CHAR_DICTIONARY = cell.dictionary;
+        const cellColor = f.cellColor[cell.colorOffset];
+        const charIndex = Math.min(
+          RENDER_CHAR_DICTIONARY.length - 1,
+          Math.max(0, Math.floor(cellColor * RENDER_CHAR_DICTIONARY.length))
+        );
+        let char = RENDER_CHAR_DICTIONARY[charIndex];
 
         // Force a persistent outline character on the logo border so it remains visible
         if (logoLoaded && logoSdf) {
-          const sdfIdx = i * f.fNumX + j;
-          if (sdfIdx >= 0 && sdfIdx < logoSdf.length / 3) {
-            const dist = logoSdf[sdfIdx * 3];
+          if (cell.sdfOffset >= 0 && cell.sdfOffset < logoSdf.length) {
+            const dist = logoSdf[cell.sdfOffset];
             if (dist > 0 && dist <= 1.4) {
               if (char === " ") {
                 // Use the highest intensity character of the cell's active dictionary
@@ -1423,7 +1615,12 @@ function update() {
       }
       rows.push(row);
     }
-    renderEl.textContent = rows.join("\n");
+    const nextAsciiFrame = rows.join("\n");
+    lastAsciiRenderTime = now;
+    if (nextAsciiFrame !== lastAsciiFrame) {
+      renderEl.textContent = nextAsciiFrame;
+      lastAsciiFrame = nextAsciiFrame;
+    }
 
     if (!hasRenderedFirstFrame) {
       hasRenderedFirstFrame = true;
@@ -1433,6 +1630,10 @@ function update() {
   }
 
   if (renderCanvas) {
+    if (!ctx) {
+      ctx = canvasEl.getContext("2d");
+    }
+
     // Use a single ImageData for better performance
     const imageData = ctx.createImageData(realWidth, realHeight);
     const data = imageData.data;
@@ -1476,14 +1677,35 @@ function update() {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  requestAnimationFrame(update);
+  if (warmupRemainingFrames > 0) {
+    warmupRemainingFrames -= 1;
+    if (warmupRemainingFrames === 0 && !fluidShouldRun && !mouseDown) {
+      scene.paused = true;
+    }
+  }
+
+  if (!scene.paused) {
+    fluidFrameId = requestAnimationFrame(update);
+  }
 }
 
 setupScene();
+rebuildAsciiRowsMeta();
 // draw obstacle in the middle
-startDrag(containerWidth / 2, containerHeight * 0.54);
-endDrag();
-update();
+setInitialObstacle();
+queueFluidWarmup();
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    scene.paused = true;
+    return;
+  }
+
+  if (fluidShouldRun || warmupRemainingFrames > 0) {
+    scene.paused = false;
+    startFluidLoop();
+  }
+});
 
 // Scroll activation IntersectionObserver (both desktop and mobile)
 let speedTimeout = null;
@@ -1491,8 +1713,10 @@ let hasSpedUp = false;
 {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
+      fluidShouldRun = entry.isIntersecting;
       if (entry.isIntersecting) {
         scene.paused = false;
+        startFluidLoop();
         if (!hasSpedUp) {
           // Mobile: start fast immediately; Desktop: ramp up slowly
           scene.dt = isFluidMobile ? SPEED_2 : SPEED_BASE;
@@ -1507,14 +1731,16 @@ let hasSpedUp = false;
           }
         }
       } else {
-        scene.paused = true;
+        if (warmupRemainingFrames <= 0) {
+          scene.paused = true;
+        }
         if (!hasSpedUp && speedTimeout) {
           clearTimeout(speedTimeout);
           speedTimeout = null;
         }
       }
     });
-  }, { threshold: 0.1 });
+  }, { rootMargin: "55% 0px", threshold: 0 });
   if (containerEl) {
     observer.observe(containerEl);
   }
@@ -1529,7 +1755,16 @@ const loadLogoImg = () => {
 };
 
 logoImg.onload = () => {
-  generateLogoSdf();
+  const buildLogoSdf = () => {
+    generateLogoSdf();
+    queueFluidWarmup(LOGO_WARMUP_FRAMES);
+  };
+
+  if (document.body.classList.contains("is-loading")) {
+    requestAnimationFrame(buildLogoSdf);
+  } else {
+    runFluidIdle(buildLogoSdf, 1200);
+  }
 };
 
 logoImg.onerror = () => {

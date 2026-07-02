@@ -23,6 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let width = container.clientWidth || window.innerWidth;
   let height = container.clientHeight || window.innerHeight;
   let activeFrames = 0;
+  let lastRenderTime = 0;
+  let isHeroVisible = true;
+  let heroBounds = hero.getBoundingClientRect();
+  const idleFrameInterval = 1000 / 30;
+  const hasVideoFrameCallback = typeof video.requestVideoFrameCallback === "function";
+  let rafId = 0;
+  let idleTimer = 0;
+  let videoFramePending = false;
 
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0.1, 10);
@@ -37,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  renderer.setSize(width, height);
+  renderer.setSize(width, height, false);
   renderer.domElement.className = "distorted-video__canvas";
   
   // Apply canvas styling
@@ -57,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
   videoTexture.colorSpace = THREE.SRGBColorSpace;
   videoTexture.minFilter = THREE.LinearFilter;
   videoTexture.magFilter = THREE.LinearFilter;
+  videoTexture.generateMipmaps = false;
 
   // Grid calculation based on container cells
   const gridWidth = Math.max(2, Math.floor(width / 40));
@@ -227,57 +236,106 @@ document.addEventListener("DOMContentLoaded", () => {
   const resize = () => {
     width = container.clientWidth || window.innerWidth;
     height = container.clientHeight || window.innerHeight;
+    heroBounds = hero.getBoundingClientRect();
     camera.left = -width / 2;
     camera.right = width / 2;
     camera.top = height / 2;
     camera.bottom = -height / 2;
     camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
+    renderer.setSize(width, height, false);
     mesh.scale.set(width, height, 1);
     material.uniforms.uContainerResolution.value.set(width, height);
     gridVariable.material.uniforms.uGridAspect.value.set(width / height, 1);
+    activeFrames = Math.max(activeFrames, 2);
+    scheduleTick();
   };
 
   const pointer = new THREE.Vector2(0, 0);
   const delta = new THREE.Vector2(0, 0);
+  const nextPointer = new THREE.Vector2(0, 0);
 
   const move = (event) => {
-    const rect = hero.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = 1 - (event.clientY - rect.top) / rect.height;
-    const next = new THREE.Vector2(x, y);
+    if (event.type === "pointerdown" || !heroBounds.width || !heroBounds.height) {
+      heroBounds = hero.getBoundingClientRect();
+    }
+
+    const x = (event.clientX - heroBounds.left) / heroBounds.width;
+    const y = 1 - (event.clientY - heroBounds.top) / heroBounds.height;
+    nextPointer.set(x, y);
     const uniforms = gridVariable.material.uniforms;
 
     uniforms.uMouseMove.value = 1;
     if (event.type === "pointerdown") {
-      uniforms.uMouse.value.copy(next);
+      uniforms.uMouse.value.copy(nextPointer);
       const angle = Math.random() * Math.PI * 2;
       delta.set(
         100 * Math.cos(angle),
         100 * Math.sin(angle),
       );
       uniforms.uDeltaMouse.value.copy(delta);
-    } else if (next.distanceTo(uniforms.uMouse.value) > 0.002) {
-      pointer.copy(next);
+    } else if (nextPointer.distanceTo(uniforms.uMouse.value) > 0.002) {
+      pointer.copy(nextPointer);
       delta.subVectors(pointer, uniforms.uMouse.value).multiplyScalar(80);
       uniforms.uDeltaMouse.value.copy(delta);
       uniforms.uMouse.value.copy(pointer);
     }
 
     activeFrames = 70;
+    scheduleTick();
   };
 
   const down = (event) => {
     move(event);
   };
 
-  const tick = () => {
-    requestAnimationFrame(tick);
+  function scheduleTick() {
+    if (document.hidden || !isHeroVisible) {
+      return;
+    }
+
+    if (activeFrames > 0) {
+      if (!rafId) {
+        rafId = requestAnimationFrame(tick);
+      }
+      return;
+    }
+
+    if (hasVideoFrameCallback) {
+      if (!videoFramePending) {
+        videoFramePending = true;
+        video.requestVideoFrameCallback((frameTime) => {
+          videoFramePending = false;
+          tick(frameTime);
+        });
+      }
+      return;
+    }
+
+    if (!idleTimer) {
+      idleTimer = window.setTimeout(() => {
+        idleTimer = 0;
+        if (!rafId) {
+          rafId = requestAnimationFrame(tick);
+        }
+      }, idleFrameInterval);
+    }
+  }
+
+  function tick(now) {
+    rafId = 0;
+
+    if (document.hidden || !isHeroVisible) {
+      return;
+    }
+
+    if (now - lastRenderTime < 4) {
+      scheduleTick();
+      return;
+    }
+    lastRenderTime = now;
 
     const uniforms = gridVariable.material.uniforms;
-    if (uniforms.uMouseMove.value > 0.0001 || uniforms.uDeltaMouse.value.length() > 0.0001) {
-      activeFrames = 70;
-    }
+    let gridUpdated = false;
 
     if (activeFrames > 0) {
       uniforms.uMouseMove.value *= 0.95;
@@ -285,10 +343,19 @@ document.addEventListener("DOMContentLoaded", () => {
       gpuCompute.compute();
       material.uniforms.uGrid.value = gpuCompute.getCurrentRenderTarget(gridVariable).texture;
       activeFrames -= 1;
+      gridUpdated = true;
+    }
+
+    if (gridUpdated && activeFrames === 0) {
+      uniforms.uMouseMove.value = 0;
+      uniforms.uDeltaMouse.value.set(0, 0);
+      gpuCompute.compute();
+      material.uniforms.uGrid.value = gpuCompute.getCurrentRenderTarget(gridVariable).texture;
     }
 
     renderer.render(scene, camera);
-  };
+    scheduleTick();
+  }
 
   if (video.videoWidth) {
     useVideoTexture();
@@ -299,8 +366,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   hero.addEventListener("pointermove", move);
   hero.addEventListener("pointerdown", down);
+  hero.addEventListener("pointerenter", () => {
+    heroBounds = hero.getBoundingClientRect();
+  });
   window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      lastRenderTime = 0;
+      activeFrames = Math.max(activeFrames, 2);
+      scheduleTick();
+    }
+  });
+
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(([entry]) => {
+      isHeroVisible = entry.isIntersecting;
+      if (isHeroVisible) {
+        lastRenderTime = 0;
+        activeFrames = Math.max(activeFrames, 2);
+        scheduleTick();
+      }
+    }, { rootMargin: "12% 0px", threshold: 0 });
+    observer.observe(hero);
+  }
 
   resize();
-  tick();
+  scheduleTick();
 });

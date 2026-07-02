@@ -119,6 +119,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  const idle = (callback, timeout = 500) => {
+    if ("requestIdleCallback" in window) {
+      return window.requestIdleCallback(callback, { timeout });
+    }
+
+    return window.setTimeout(callback, 16);
+  };
+
+  const pathLengthCache = new WeakMap();
+  const getSvgPathLength = (path) => {
+    if (pathLengthCache.has(path)) {
+      return pathLengthCache.get(path);
+    }
+
+    let length = Number(path.dataset.pathLength || 0);
+    if (!length) {
+      try {
+        length = path.getTotalLength() || 300;
+      } catch (e) {
+        length = 300;
+      }
+      path.dataset.pathLength = String(length);
+    }
+
+    pathLengthCache.set(path, length);
+    return length;
+  };
+
+  const prewarmVisualCaches = () => {
+    idle(() => {
+      document.querySelectorAll(".illustration-container path").forEach(getSvgPathLength);
+      document.querySelectorAll("img").forEach((img) => {
+        if (img.complete && img.decode) {
+          img.decode().catch(() => {});
+        }
+      });
+      document.querySelector(".hero-video video")?.load?.();
+    }, 900);
+  };
+
   const initIntegrationsDescriptionAnimation = () => {
     const description = document.querySelector(".integrations-description");
     const masks = window.gsap?.utils?.toArray(".integrations-description-line-mask") ?? [];
@@ -203,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = title.textContent;
     title.textContent = "";
     title.dataset.split = "true";
+    const fragment = document.createDocumentFragment();
 
     [...text].forEach((char, index) => {
       const mask = document.createElement("span");
@@ -214,8 +255,10 @@ document.addEventListener("DOMContentLoaded", () => {
       letter.style.transitionDelay = `${index * 0.02}s`;
 
       mask.appendChild(letter);
-      title.appendChild(mask);
+      fragment.appendChild(mask);
     });
+
+    title.appendChild(fragment);
   };
 
   const splitTitleIntoChars = (title) => {
@@ -227,6 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
     title.textContent = "";
     title.dataset.split = "true";
     title.setAttribute("aria-label", text);
+    const fragment = document.createDocumentFragment();
 
     text.split(/\s+/).forEach((word, wordIndex, words) => {
       const wordEl = document.createElement("span");
@@ -240,13 +284,14 @@ document.addEventListener("DOMContentLoaded", () => {
         wordEl.appendChild(charEl);
       });
 
-      title.appendChild(wordEl);
+      fragment.appendChild(wordEl);
 
       if (wordIndex < words.length - 1) {
-        title.appendChild(document.createTextNode(" "));
+        fragment.appendChild(document.createTextNode(" "));
       }
     });
 
+    title.appendChild(fragment);
     title.style.opacity = "1";
   };
 
@@ -342,6 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     element.textContent = "";
     element.dataset.split = "true";
+    const fragment = document.createDocumentFragment();
 
     lines.forEach((line) => {
       const mask = document.createElement("span");
@@ -353,8 +399,10 @@ document.addEventListener("DOMContentLoaded", () => {
       lineEl.textContent = line.text.trimEnd();
 
       mask.appendChild(lineEl);
-      element.appendChild(mask);
+      fragment.appendChild(mask);
     });
+
+    element.appendChild(fragment);
   };
 
   const splitProductsDescription = () => {
@@ -409,16 +457,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const illustration = card.querySelector(".service-illustration");
       const paths = window.gsap.utils.toArray(card.querySelectorAll(".illustration-container path"));
 
-      // Pre-calculate path lengths and set initial hidden state
       const pathsWithLength = paths.map((path) => {
-        let length = 0;
-        try {
-          length = path.getTotalLength() || 0;
-        } catch (e) {
-          length = 300; // Safe fallback
-        }
+        const length = getSvgPathLength(path);
 
-        // Pre-set exact dash settings for performance
         window.gsap.set(path, {
           strokeDasharray: length,
           strokeDashoffset: length,
@@ -539,21 +580,21 @@ document.addEventListener("DOMContentLoaded", () => {
       c.svgDelayCall = window.gsap.delayedCall(delay, () => {
         c.hasDrawnSvg = true;
         c.svgDelayCall = null;
+        const paths = c.pathsWithLength.map(({ path }) => path);
         
         c.svgTimeline = window.gsap.timeline({
           onComplete: () => {
             c.svgTimeline = null;
           },
         });
-        c.pathsWithLength.forEach(({ path, length }, pathIndex) => {
-          c.svgTimeline.to(path, {
-            opacity: 1,
-            strokeDashoffset: 0,
-            duration: 1.2,
-            ease: "power2.out",
-            overwrite: true
-          }, pathIndex * 0.02); // Stagger paths drawing with custom index offset
-        });
+        c.svgTimeline.to(paths, {
+          opacity: 1,
+          strokeDashoffset: 0,
+          duration: 1.2,
+          ease: "power2.out",
+          stagger: 0.02,
+          overwrite: true
+        }, 0);
       });
     };
 
@@ -834,6 +875,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title.textContent = "";
       title.dataset.split = "true";
       title.setAttribute("aria-label", text);
+      const fragment = document.createDocumentFragment();
 
       [...text].forEach((char) => {
         const charEl = document.createElement("span");
@@ -848,8 +890,15 @@ document.addEventListener("DOMContentLoaded", () => {
         glyph.textContent = char === " " ? "\u00a0" : char;
         reel.appendChild(glyph);
         charEl.appendChild(reel);
-        title.appendChild(charEl);
-        charEl.style.width = `${glyph.getBoundingClientRect().width}px`;
+        fragment.appendChild(charEl);
+      });
+
+      title.appendChild(fragment);
+      title.querySelectorAll(".syro-pos-title-char").forEach((charEl) => {
+        const glyph = charEl.querySelector(".syro-pos-title-reel-glyph");
+        if (glyph) {
+          charEl.style.width = `${glyph.getBoundingClientRect().width}px`;
+        }
       });
     });
   };
@@ -878,6 +927,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
       }
 
+      if (reel.dataset.ready === "true") {
+        return reel;
+      }
+
       reel.textContent = "";
 
       if (finalChar === "\u00a0") {
@@ -885,6 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
         glyph.className = "syro-pos-title-reel-glyph";
         glyph.textContent = "\u00a0";
         reel.appendChild(glyph);
+        reel.dataset.ready = "true";
         return reel;
       }
 
@@ -895,6 +949,7 @@ document.addEventListener("DOMContentLoaded", () => {
         reel.appendChild(glyph);
       }
 
+      reel.dataset.ready = "true";
       return reel;
     };
 
@@ -1170,6 +1225,7 @@ document.addEventListener("DOMContentLoaded", () => {
   splitProductsTitle();
   splitCaseStudyTitles();
   wrapCaseStudyLogos();
+  prewarmVisualCaches();
   runEntryAnimation(() => {
     const lenis = initLenis();
     initProductsTitleAnimation();
@@ -1298,14 +1354,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!collection || !follower || !followerInner) return;
 
-      // Preload images to cache them early
+      const imageCache = new Map();
+      const getCachedPreviewImage = (src) => {
+        if (!src) return null;
+        if (imageCache.has(src)) {
+          return imageCache.get(src);
+        }
+
+        const img = new Image();
+        let resolveReady;
+        const ready = new Promise((resolve) => {
+          resolveReady = resolve;
+        });
+        const entry = { img, ready, loaded: false };
+        const markReady = () => {
+          entry.loaded = true;
+          resolveReady();
+        };
+
+        img.onload = markReady;
+        img.onerror = markReady;
+        img.src = src;
+        if (img.complete) {
+          markReady();
+        } else {
+          img.decode?.().then(markReady).catch(() => {});
+        }
+
+        imageCache.set(src, entry);
+        return entry;
+      };
+
       items.forEach(item => {
         const visual = item.querySelector('[data-follower-visual]');
         const src = visual ? visual.getAttribute('src') : '';
-        if (src) {
-          const img = new Image();
-          img.src = src;
-        }
+        getCachedPreviewImage(src);
       });
 
       // Dynamically initialize dual image structure for transitions
@@ -1324,6 +1407,13 @@ document.addEventListener("DOMContentLoaded", () => {
       let mouseX = 0;
       let mouseY = 0;
       let isMouseInitialized = false;
+      let followFrame = 0;
+
+      const updateFollowerPosition = () => {
+        followFrame = 0;
+        xTo(mouseX);
+        yTo(mouseY);
+      };
 
       window.addEventListener('mousemove', e => {
         mouseX = e.clientX;
@@ -1332,8 +1422,9 @@ document.addEventListener("DOMContentLoaded", () => {
           isMouseInitialized = true;
           window.gsap.set(follower, { xPercent: -50, yPercent: -50, x: e.clientX, y: e.clientY });
         }
-        xTo(e.clientX);
-        yTo(e.clientY);
+        if (!followFrame) {
+          followFrame = window.requestAnimationFrame(updateFollowerPosition);
+        }
       });
 
       let activeIndex = null;
@@ -1445,13 +1536,11 @@ document.addEventListener("DOMContentLoaded", () => {
           prevSrc = newSrc;
         };
 
-        // Guard: Verify image is fully loaded/cached before revealing
-        const tempImg = new Image();
-        tempImg.src = newSrc;
-        if (tempImg.complete) {
+        const cachedImage = getCachedPreviewImage(newSrc);
+        if (!cachedImage || cachedImage.loaded || cachedImage.img.complete) {
           runReveal();
         } else {
-          tempImg.onload = runReveal;
+          cachedImage.ready.then(runReveal);
         }
       };
 
@@ -1488,7 +1577,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
 
-      window.addEventListener('scroll', checkMouseLeaveOnScroll, { passive: true });
+      let scrollCheckFrame = 0;
+      const requestMouseLeaveOnScroll = () => {
+        if (scrollCheckFrame) return;
+
+        scrollCheckFrame = window.requestAnimationFrame(() => {
+          scrollCheckFrame = 0;
+          checkMouseLeaveOnScroll();
+        });
+      };
+
+      window.addEventListener('scroll', requestMouseLeaveOnScroll, { passive: true });
     });
   };
 
