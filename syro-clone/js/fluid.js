@@ -26,13 +26,16 @@ if (!containerProbe || !containerProbe.querySelector("canvas") || !containerProb
 window.__syroFluidStarted = true;
 console.log("SYRO fluid initialized");
 
-  const isFluidMobile =
+  const isCompactFluidViewport = () =>
     window.matchMedia("(max-width: 768px)").matches ||
     window.matchMedia("(pointer: coarse)").matches;
+  const isFluidMobile = isCompactFluidViewport();
 
   const perfMultiplier = window.fluidGridMultiplier || 1.0;
-  const baseTarget = isFluidMobile ? 128 * 40 : 128 * 74;
-  const TARGET_LONG_SIDE = baseTarget / (perfMultiplier * perfMultiplier);
+  const getTargetLongSide = () => {
+    const baseTarget = isCompactFluidViewport() ? 128 * 40 : 128 * 74;
+    return baseTarget / (perfMultiplier * perfMultiplier);
+  };
   const MIN_GRID_SIZE = 8;
   const CELL_CROP_X = 1;
   const CELL_CROP_Y = 2;
@@ -110,7 +113,7 @@ let containerHeight = containerEl ? containerEl.clientHeight : window.innerHeigh
 let GRID_SIZE = Math.max(
   Math.round(
     Math.sqrt(
-      (containerWidth * containerHeight) / TARGET_LONG_SIDE
+      (containerWidth * containerHeight) / getTargetLongSide()
     )
   ),
   MIN_GRID_SIZE
@@ -1402,12 +1405,14 @@ let resizeTimeout;
 let lastLayoutWidth = containerWidth;
 let lastLayoutHeight = containerHeight;
 window.addEventListener("resize", () => {
-  if (isFluidMobile) return;
-
   const nextWidth = containerEl ? containerEl.clientWidth : window.innerWidth;
   const nextHeight = containerEl ? containerEl.clientHeight : window.innerHeight;
   const widthDelta = Math.abs(nextWidth - lastLayoutWidth);
   const heightDelta = Math.abs(nextHeight - lastLayoutHeight);
+  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+  if (widthDelta < 2 && heightDelta < 2) return;
+  if (isCoarsePointer && widthDelta < 16) return;
 
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
@@ -1419,7 +1424,7 @@ window.addEventListener("resize", () => {
     GRID_SIZE = Math.max(
       Math.round(
         Math.sqrt(
-          (containerWidth * containerHeight) / TARGET_LONG_SIDE
+          (containerWidth * containerHeight) / getTargetLongSide()
         )
       ),
       MIN_GRID_SIZE
@@ -1449,11 +1454,11 @@ window.addEventListener("resize", () => {
     setupScene();
     rebuildAsciiRowsMeta();
     generateLogoSdf();
-    if (!isFluidMobile) {
+    if (!mouseDown) {
       setInitialObstacle();
     }
     scene.paused = wasPaused;
-    startFluidLoop();
+    queueFluidWarmup(LOGO_WARMUP_FRAMES);
   }, 250);
 });
 
