@@ -1777,8 +1777,10 @@ document.addEventListener("DOMContentLoaded", () => {
       initPreviewFollower();
       window.ScrollTrigger?.refresh();
       document.documentElement.classList.add("animations-ready");
-      document.body.classList.remove("is-loading", "entry-window", "entry-open");
-      document.querySelector(".entry-loader")?.remove();
+      document.body.classList.remove("is-loading");
+      window.setTimeout(() => {
+        document.body.classList.remove("entry-window", "entry-open");
+      }, 520);
       document.dispatchEvent(new Event("syro:animations-ready"));
     };
 

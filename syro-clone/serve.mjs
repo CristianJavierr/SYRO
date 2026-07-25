@@ -26,6 +26,10 @@ createServer((req, res) => {
     filePath = join(filePath, "index.html");
   }
 
+  if (!existsSync(filePath) && extname(cleanPath) === "") {
+    filePath = join(root, "index.html");
+  }
+
   if (!existsSync(filePath)) {
     res.writeHead(404);
     res.end("Not found");

@@ -207,7 +207,7 @@ export const pageHtml = `
         </div>
         <ul class="case-studies-list__items" data-follower-collection="">
           <li data-follower-item="">
-            <a class="case-study" href="#syro-pos">
+            <a class="case-study" href="/productos/syro-pos">
               <span class="case-study__hover-bg" aria-hidden="true"></span>
               <div class="case-study__media">
                 <img class="case-study__image" data-follower-visual="" src="./assets/pos_desktop.jpeg" alt="SYRO POS" loading="lazy" />
@@ -237,7 +237,7 @@ export const pageHtml = `
             </a>
           </li>
           <li data-follower-item="">
-            <a class="case-study" href="#cuadernito">
+            <a class="case-study" href="/productos/cuadernito">
               <span class="case-study__hover-bg" aria-hidden="true"></span>
               <div class="case-study__media">
                 <img class="case-study__image" data-follower-visual="" src="./assets/cuadernito_desktop.jpeg" alt="Cuadernito" loading="lazy" />
@@ -267,7 +267,7 @@ export const pageHtml = `
             </a>
           </li>
           <li data-follower-item="">
-            <a class="case-study" href="#syro-erp">
+            <a class="case-study" href="/productos/syro-erp">
               <span class="case-study__hover-bg" aria-hidden="true"></span>
               <div class="case-study__media">
                 <img class="case-study__image" data-follower-visual="" src="./assets/erp_desktop.jpeg" alt="SYRO ERP" loading="lazy" />
