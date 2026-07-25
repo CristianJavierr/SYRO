@@ -986,35 +986,51 @@ var logoSdf = null;
 var logoLoaded = false;
   // isFluidMobile is declared at the top of initSyroFluid
 
-// Allow native vertical scrolling on mobile while JS handles horizontal gestures
+// Mobile is scroll-reactive only. Let gestures pass through to the page and
+// prevent taps or drags from becoming fluid obstacles.
 if (isFluidMobile && containerEl) {
   containerEl.style.touchAction = "pan-y";
+  containerEl.style.pointerEvents = "none";
 }
 if (isFluidMobile && canvasEl) {
   canvasEl.style.touchAction = "pan-y";
+  canvasEl.style.pointerEvents = "none";
 }
 
 // Scroll gravity integration
 var lastScrollY = window.scrollY;
 var scrollGravityY = 0;
 
+const isFluidNearViewport = () => {
+  if (!containerEl) return false;
+
+  const bounds = containerEl.getBoundingClientRect();
+  const activationMargin = window.innerHeight * 0.7;
+  return bounds.bottom >= -activationMargin &&
+    bounds.top <= window.innerHeight + activationMargin;
+};
+
 window.addEventListener("scroll", () => {
   const currentScrollY = window.scrollY;
   const deltaY = currentScrollY - lastScrollY;
   lastScrollY = currentScrollY;
 
-  if (scene.paused) return;
+  if (!deltaY || !isFluidNearViewport()) return;
 
-  // Make the scroll reaction extremely gentle and smooth
-  // Clamp deltaY to a low limit to prevent violent jerks
-  const deltaLimit = isFluidMobile ? 4 : 35;
-  const impulse = isFluidMobile ? 0.06 : 1.0;
-  const gravityLimit = isFluidMobile ? 2 : 35;
+  // Native mobile scrolling emits fewer, smaller events than a desktop wheel.
+  // Give those deltas enough force to visibly move the fluid while keeping the
+  // impulse capped so a fast swipe cannot destabilize the simulation.
+  const deltaLimit = isFluidMobile ? 32 : 35;
+  const impulse = isFluidMobile ? 0.5 : 1.0;
+  const gravityLimit = isFluidMobile ? 18 : 35;
   const clampedDelta = Math.max(-deltaLimit, Math.min(deltaLimit, deltaY));
   
   scrollGravityY += clampedDelta * impulse;
   scrollGravityY = Math.max(-gravityLimit, Math.min(gravityLimit, scrollGravityY));
-  startFluidLoop();
+
+  // A scroll may arrive just before IntersectionObserver marks the section as
+  // visible. Wake a short burst of frames so the first mobile swipe is never lost.
+  queueFluidWarmup(isFluidMobile ? 18 : 8);
 }, { passive: true });
 
 
@@ -1357,35 +1373,6 @@ if (!isFluidMobile) {
   );
 }
 
-// Mobile: pointer listeners that leverage touch-action: pan-y for native scrolling
-if (isFluidMobile) {
-  let isPointerInteraction = false;
-
-  containerEl.addEventListener("pointerdown", (event) => {
-    scene.obstacleRadius = 0.0;
-    scene.dt = SPEED_1;
-    startDrag(event.clientX, event.clientY);
-    isPointerInteraction = true;
-  });
-
-  containerEl.addEventListener("pointermove", (event) => {
-    if (isPointerInteraction) {
-      drag(event.clientX, event.clientY);
-    }
-  });
-
-  const stopPointerDrag = () => {
-    if (isPointerInteraction) {
-      scene.dt = SPEED_2;
-      endDrag();
-    }
-    isPointerInteraction = false;
-  };
-
-  containerEl.addEventListener("pointerup", stopPointerDrag);
-  containerEl.addEventListener("pointercancel", stopPointerDrag);
-}
-
 document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "p":
@@ -1577,7 +1564,7 @@ function update(now = performance.now()) {
   }
 
   // Decay scroll gravity smoothly towards 0
-  scrollGravityY *= isFluidMobile ? 0.85 : 0.91;
+  scrollGravityY *= isFluidMobile ? 0.9 : 0.91;
   if (Math.abs(scrollGravityY) < 0.1) {
     scrollGravityY = 0;
   }

@@ -1,17 +1,39 @@
 export const pageHtml = `
-    <header class="site-header" aria-label="Site navigation">
-      <a class="brand-link" href="/" aria-label="SYRO home">
+    <header class="site-header" aria-label="Navegación principal">
+      <a class="brand-link" href="#inicio" aria-label="Ir al inicio de SYRO">
         <img class="brand-logo" src="./assets/syrologo.png" alt="SYRO logo" />
       </a>
 
-      <button class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+      <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-controls="site-navigation" aria-expanded="false">
         <span></span>
         <span></span>
       </button>
+
+      <nav class="site-nav" id="site-navigation" aria-label="Secciones del sitio" aria-hidden="true">
+        <div class="site-nav__inner">
+          <p class="site-nav__eyebrow">Navegación</p>
+          <div class="site-nav__links">
+            <a href="#inicio"><span>01</span>Inicio</a>
+            <a href="#services"><span>02</span>Servicios</a>
+            <a href="#case-studies"><span>03</span>Productos</a>
+            <a href="#features"><span>04</span>Soluciones</a>
+            <a href="#integrations"><span>05</span>Clientes</a>
+          </div>
+          <div class="site-nav__footer">
+            <p>Software inteligente para hacer crecer tu negocio.</p>
+            <a
+              class="site-nav__contact"
+              href="https://wa.me/18496586057?text=Hola%2C%20me%20interesa%20conocer%20m%C3%A1s%20sobre%20los%20servicios%20de%20SYRO."
+              target="_blank"
+              rel="noopener noreferrer"
+            >Contáctanos por WhatsApp <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </nav>
     </header>
 
     <main class="page-shell">
-      <section class="hero" aria-labelledby="hero-title">
+      <section class="hero" id="inicio" aria-labelledby="hero-title">
         <div class="hero-grid" aria-hidden="true"></div>
         <div class="hero-orbit hero-orbit-top" aria-hidden="true"></div>
         <div class="hero-orbit hero-orbit-left" aria-hidden="true"></div>
@@ -53,7 +75,13 @@ export const pageHtml = `
         <div class="hero-copy">
           <h1 id="hero-title">SYRO</h1>
           <p>La forma más inteligente de digitalizar tu negocio.</p>
-          <a class="workflow-button" href="./contact">
+          <a
+            class="workflow-button"
+            href="https://wa.me/18496586057?text=Hola%2C%20me%20interesa%20conocer%20m%C3%A1s%20sobre%20los%20servicios%20de%20SYRO."
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Contáctanos por WhatsApp"
+          >
             <span class="workflow-icon" aria-hidden="true">
               <span></span>
             </span>
@@ -437,16 +465,18 @@ export const pageHtml = `
 
         <!-- Column 2: Sections Navigation -->
         <div class="site-footer__col">
-          <p class="site-footer__col-label">SECTIONS</p>
+          <p class="site-footer__col-label">SECCIONES</p>
           <nav class="site-footer__links-nav">
-            <a href="#services">Services</a>
-            <a href="#case-studies">Case Studies</a>
-            <a href="#features">Features</a>
-            <a href="#integrations">Integrations</a>
+            <a href="#services">Servicios</a>
+            <a href="#case-studies">Productos</a>
+            <a href="#features">Soluciones</a>
+            <a href="#integrations">Clientes</a>
           </nav>
         </div>
 
-        <!-- Column 3: Company / Resources -->
+        <!--
+          Enlaces de empresa pendientes de publicar.
+          Volver a habilitar esta columna cuando existan las páginas correspondientes.
         <div class="site-footer__col">
           <p class="site-footer__col-label">COMPANY</p>
           <nav class="site-footer__links-nav">
@@ -456,20 +486,25 @@ export const pageHtml = `
             <a href="./terms">Terms of Service</a>
           </nav>
         </div>
+        -->
 
-        <!-- Column 4: Contact & Socials -->
-        <div class="site-footer__col">
-          <p class="site-footer__col-label">CONTACT</p>
+        <!-- Column 3: Contact -->
+        <div class="site-footer__col site-footer__contact-col">
+          <p class="site-footer__col-label">CONTACTO</p>
           <div class="site-footer__contact-info">
-            <a class="site-footer__contact-link" href="mailto:hello@syro.ai">hello@syro.ai</a>
-            <a class="site-footer__contact-link" href="tel:+13055550199">+1 (305) 555-0199</a>
+            <a class="site-footer__contact-link" href="mailto:info@syrotechdr.com">info@syrotechdr.com</a>
+            <a class="site-footer__contact-link" href="tel:+18496586057">+1 (849) 658-6057</a>
           </div>
+          <!--
+            Perfiles sociales pendientes de confirmar.
+            Volver a habilitar este bloque cuando estén disponibles.
           <p class="site-footer__col-label" style="margin-top: 20px;">CONNECT</p>
           <div class="site-footer__socials">
             <a class="site-footer__contact-link" href="https://github.com/syro-ai" target="_blank" rel="noopener">GitHub</a>
             <a class="site-footer__contact-link" href="https://x.com/syro_ai" target="_blank" rel="noopener">X</a>
             <a class="site-footer__contact-link" href="https://linkedin.com/company/syro-ai" target="_blank" rel="noopener">LinkedIn</a>
           </div>
+          -->
         </div>
       </div>
       <p class="site-footer__wordmark" aria-label="SYRO" id="site-footer-title">SYRO</p>

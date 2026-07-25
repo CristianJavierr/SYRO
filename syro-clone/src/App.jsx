@@ -29,6 +29,41 @@ export default function App() {
   useEffect(() => {
     document.body.classList.add("is-loading");
 
+    const header = document.querySelector(".site-header");
+    const menuToggle = document.querySelector(".menu-toggle");
+    const siteNav = document.querySelector(".site-nav");
+    const menuLinks = siteNav?.querySelectorAll("a") ?? [];
+    let menuOpen = false;
+
+    const setMenuState = (isOpen, { returnFocus = false } = {}) => {
+      menuOpen = isOpen;
+      header?.classList.toggle("is-menu-open", isOpen);
+      document.body.classList.toggle("menu-open", isOpen);
+      menuToggle?.setAttribute("aria-expanded", String(isOpen));
+      menuToggle?.setAttribute("aria-label", isOpen ? "Cerrar menú" : "Abrir menú");
+      siteNav?.setAttribute("aria-hidden", String(!isOpen));
+
+      if (isOpen) {
+        window.lenis?.stop?.();
+        window.requestAnimationFrame(() => menuLinks[0]?.focus());
+      } else {
+        window.lenis?.start?.();
+        if (returnFocus) menuToggle?.focus();
+      }
+    };
+
+    const toggleMenu = () => setMenuState(!menuOpen);
+    const closeFromLink = () => setMenuState(false);
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape" && menuOpen) {
+        setMenuState(false, { returnFocus: true });
+      }
+    };
+
+    menuToggle?.addEventListener("click", toggleMenu);
+    menuLinks.forEach((link) => link.addEventListener("click", closeFromLink));
+    document.addEventListener("keydown", closeOnEscape);
+
     const runPerformanceBenchmark = () => {
       const cores = navigator.hardwareConcurrency || 4;
       const memory = navigator.deviceMemory || 4;
@@ -199,6 +234,10 @@ export default function App() {
 
     return () => {
       disposed = true;
+      menuToggle?.removeEventListener("click", toggleMenu);
+      menuLinks.forEach((link) => link.removeEventListener("click", closeFromLink));
+      document.removeEventListener("keydown", closeOnEscape);
+      document.body.classList.remove("menu-open");
     };
   }, []);
 
