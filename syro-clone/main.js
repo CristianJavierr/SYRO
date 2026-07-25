@@ -867,38 +867,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const splitCaseStudyTitles = () => {
     document.querySelectorAll(".case-study__title").forEach((title) => {
-      if (!title || title.dataset.split === "true") {
-        return;
-      }
-
-      const text = title.textContent.trim();
-      title.textContent = "";
-      title.dataset.split = "true";
-      title.setAttribute("aria-label", text);
-      const fragment = document.createDocumentFragment();
-
-      [...text].forEach((char) => {
-        const charEl = document.createElement("span");
-        const reel = document.createElement("span");
-        const glyph = document.createElement("span");
-
-        charEl.className = "syro-pos-title-char";
-        charEl.setAttribute("aria-hidden", "true");
-        charEl.dataset.finalChar = char === " " ? "\u00a0" : char;
-        reel.className = "syro-pos-title-reel";
-        glyph.className = "syro-pos-title-reel-glyph";
-        glyph.textContent = char === " " ? "\u00a0" : char;
-        reel.appendChild(glyph);
-        charEl.appendChild(reel);
-        fragment.appendChild(charEl);
-      });
-
-      title.appendChild(fragment);
-      title.querySelectorAll(".syro-pos-title-char").forEach((charEl) => {
-        const glyph = charEl.querySelector(".syro-pos-title-reel-glyph");
-        if (glyph) {
-          charEl.style.width = `${glyph.getBoundingClientRect().width}px`;
-        }
+      splitTextIntoLines(title, {
+        measureClass: "case-study-title-measure-word",
+        maskClass: "case-study-title-line-mask",
+        lineClass: "case-study-title-line",
       });
     });
   };
@@ -914,112 +886,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.gsap.registerPlugin(window.ScrollTrigger);
 
-    const slotChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\\|!@#$%&?+-";
-    const reelLength = 9;
-    const reelStep = 1.3;
-
-    const randomSlotChar = () => slotChars[Math.floor(Math.random() * slotChars.length)];
-    const buildReel = (char) => {
-      const finalChar = char.dataset.finalChar;
-      const reel = char.querySelector(".syro-pos-title-reel");
-
-      if (!reel) {
-        return null;
-      }
-
-      if (reel.dataset.ready === "true") {
-        return reel;
-      }
-
-      reel.textContent = "";
-
-      if (finalChar === "\u00a0") {
-        const glyph = document.createElement("span");
-        glyph.className = "syro-pos-title-reel-glyph";
-        glyph.textContent = "\u00a0";
-        reel.appendChild(glyph);
-        reel.dataset.ready = "true";
-        return reel;
-      }
-
-      for (let index = 0; index < reelLength; index += 1) {
-        const glyph = document.createElement("span");
-        glyph.className = "syro-pos-title-reel-glyph";
-        glyph.textContent = index === 0 ? finalChar : randomSlotChar();
-        reel.appendChild(glyph);
-      }
-
-      reel.dataset.ready = "true";
-      return reel;
-    };
-
     cards.forEach((card) => {
-      const chars = window.gsap.utils.toArray(card.querySelectorAll(".syro-pos-title-char"));
       const title = card.querySelector(".case-study__title");
-      const center = (chars.length - 1) / 2;
-      const maxDistance = Math.max(center, 1);
-      let activeTweens = [];
+      const masks = window.gsap.utils.toArray(card.querySelectorAll(".case-study-title-line-mask"));
+      const lines = window.gsap.utils.toArray(card.querySelectorAll(".case-study-title-line"));
 
-      if (!title || !chars.length) {
+      if (!title || !masks.length || !lines.length) {
         return;
       }
 
       if (reduceMotion) {
-        chars.forEach((char) => {
-          const reel = buildReel(char);
-          window.gsap.set(reel, { y: "0em" });
+        window.gsap.set([title, ...masks, ...lines], {
+          y: 0,
+          yPercent: 0,
+          opacity: 1,
         });
         return;
       }
 
+      const targets = [title, ...masks, ...lines];
+
       const setHidden = () => {
-        activeTweens.forEach((tween) => tween.kill());
-        activeTweens = [];
-        chars.forEach((char) => {
-          const reel = buildReel(char);
-          const finalChar = char.dataset.finalChar;
-
-          window.gsap.set(char, { y: "0em", rotate: 0 });
-
-          if (reel) {
-            window.gsap.set(reel, {
-              y: finalChar === "\u00a0" ? "0em" : `${-1 * (reelLength - 1) * reelStep}em`,
-            });
-          }
-        });
+        window.gsap.killTweensOf(targets);
+        window.gsap.set(title, { opacity: 0 });
+        window.gsap.set(masks, { y: 24 });
+        window.gsap.set(lines, { yPercent: 110 });
       };
 
       const playIn = () => {
-        activeTweens.forEach((tween) => tween.kill());
-        activeTweens = [];
-        window.gsap.killTweensOf(chars);
+        window.gsap.killTweensOf(targets);
+        window.gsap.set(title, { opacity: 0 });
+        window.gsap.set(masks, { y: 24 });
+        window.gsap.set(lines, { yPercent: 110 });
 
-        chars.forEach((char, index) => {
-          const finalChar = char.dataset.finalChar;
-          const reel = buildReel(char);
-
-          if (finalChar === "\u00a0" || !reel) {
-            return;
-          }
-
-          const distanceFromCenter = Math.abs(index - center) / maxDistance;
-          const duration = window.gsap.utils.interpolate(0.54, 1.24, distanceFromCenter);
-
-          window.gsap.set(reel, {
-            y: `${-1 * (reelLength - 1) * reelStep}em`,
-            rotate: 0,
-            transformOrigin: "50% 100%",
-          });
-
-          const tween = window.gsap.to(reel, {
-            y: "0em",
-            duration,
-            ease: "power4.out",
+        window.gsap.timeline()
+          .to(title, {
+            opacity: 1,
+            duration: 0.95,
+            ease: "power3.out",
+          }, 0)
+          .to(masks, {
+            y: 0,
+            duration: 0.95,
+            ease: "power3.out",
             overwrite: true,
-          });
-
-          activeTweens.push(tween);
-        });
+          }, 0)
+          .to(lines, {
+            yPercent: 0,
+            duration: 0.86,
+            ease: "power3.out",
+            stagger: 0.12,
+            overwrite: true,
+          }, 0.08);
       };
 
       setHidden();

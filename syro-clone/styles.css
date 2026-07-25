@@ -1462,34 +1462,18 @@ body.is-loading .hero-title-char {
   overflow: hidden;
 }
 
-.case-study__title[data-split="true"] {
-  letter-spacing: 0;
+.case-study-title-measure-word {
+  display: inline;
 }
 
-.syro-pos-title-char {
-  display: inline-block;
-  height: 1.3em;
-  margin-right: 0.44px;
+.case-study-title-line-mask {
+  display: block;
   overflow: hidden;
-  transform-origin: 50% 100%;
-  vertical-align: top;
 }
 
-.syro-pos-title-char:last-child {
-  margin-right: 0;
-}
-
-.syro-pos-title-reel {
-  display: block;
-  width: 100%;
+.case-study-title-line {
+  display: inline-block;
   will-change: transform;
-}
-
-.syro-pos-title-reel-glyph {
-  display: block;
-  height: 1.3em;
-  line-height: 1.3em;
-  text-align: center;
 }
 
 .case-study__body {
