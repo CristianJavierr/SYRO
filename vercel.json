@@ -1,5 +1,12 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "cd syro-clone && npm install",
   "buildCommand": "cd syro-clone && npm run build",
-  "outputDirectory": "syro-clone/dist"
+  "outputDirectory": "syro-clone/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
